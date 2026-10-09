@@ -1,0 +1,23 @@
+{
+  "game": 1,
+  "id": "dragons-dogma-2",
+  "name": "Dragon's Dogma 2",
+  "stores": {
+    "steam": [2054970],
+    "epic": [],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["DD2.exe"], "launcher": []},
+    "linux": {"game": ["DD2.exe"], "launcher": [], "match": "cmdline"}
+  },
+  "markers": [
+    "DD2.exe"
+  ],
+  "proton": 2054970,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}
