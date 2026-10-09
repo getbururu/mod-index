@@ -28,7 +28,7 @@ only when you click Install.
 |---|---|
 | `entries/<id>.json` | one per listed mod, added by its author's pull request |
 | `state/<id>.json` | the accepted versions of each mod with their hashes; written by the bot's pull requests only |
-| `games/<game-id>.json` | the games mods are made for: store ids, program names and marker files |
+| `games/<game-id>.json` | the games Bururu knows: store ids, program names, marker files and the game's controller profile, see [Game profiles](#game-profiles) |
 | `policy/` | names nobody else may take, versions taken back, Bururu versions with a known flaw, the oldest Bururu the list asks for |
 | `files/icons/`, `files/text/` | the icons, READMEs and CHANGELOGs the list points at, named by their SHA-256 |
 | `tools/indexer/` | the Go program the workflows run |
@@ -47,6 +47,32 @@ only when you click Install.
 Bururu's repo is private, so `poll` reads it with the `BURURU_READ`
 secret, a read-only token for `getbururu/bururu`. Without it, nothing is
 polled.
+
+## Game profiles
+
+A game's record may say which controller Bururu shows the game, once we
+have tested it:
+
+```json
+"controller": { "cable": "direct", "bluetooth": "dualsense", "steam_input": "off" }
+```
+
+| Key | What |
+|---|---|
+| `cable` | what the game sees while the DualSense is on its cable |
+| `bluetooth` | the same while it is on Bluetooth |
+| `steam_input` | `off` when the game works only with Steam Input off for it |
+
+The controllers are `direct` (the game reads the DualSense itself),
+`dualsense`, `dualshock4` and `xbox360` (one of Bururu's virtual
+controllers). Leave out a key we have not tested. This is what Bururu
+picks on Automatic; the player can pick another controller for the game
+in Bururu, and their choice stays.
+
+Bururu skips a key it does not know in `controller`, and takes a value
+it does not know as no profile for that connection, so a new key or
+controller does not break older Bururus. The check here takes only the
+keys and values above.
 
 ## Licence
 

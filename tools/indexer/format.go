@@ -244,13 +244,31 @@ type Advisory struct {
 
 // GameRecord is a game the list knows.
 type GameRecord struct {
-	ID      string            `json:"id"`
-	Name    string            `json:"name"`
-	Stores  GameStores        `json:"stores"`
-	Exe     map[string]ExeSet `json:"exe"`
-	Markers []string          `json:"markers"`
-	Proton  int               `json:"proton,omitempty"`
+	ID         string            `json:"id"`
+	Name       string            `json:"name"`
+	Stores     GameStores        `json:"stores"`
+	Exe        map[string]ExeSet `json:"exe"`
+	Markers    []string          `json:"markers"`
+	Proton     int               `json:"proton,omitempty"`
+	Controller *GameController   `json:"controller,omitempty"`
 }
+
+// GameController is a game's profile: the controller Bururu shows the
+// game on each connection, and whether the game needs Steam Input off.
+// Bururu skips a key it does not know in it, and takes a value it does
+// not know as no profile for that connection.
+type GameController struct {
+	Cable      string `json:"cable,omitempty"`       // the DualSense on its cable: one of Pads
+	Bluetooth  string `json:"bluetooth,omitempty"`   // the DualSense on Bluetooth: one of Pads
+	SteamInput string `json:"steam_input,omitempty"` // SteamInputOff: the game needs Steam Input off
+}
+
+// Pads are the controllers a game profile may name: the real controller
+// itself, or one of Bururu's virtual ones.
+var Pads = []string{"direct", "dualsense", "dualshock4", "xbox360"}
+
+// SteamInputOff is GameController.SteamInput's one value.
+const SteamInputOff = "off"
 
 // GameStores are a game's ids in each store.
 type GameStores struct {

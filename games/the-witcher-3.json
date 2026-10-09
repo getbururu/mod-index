@@ -1,0 +1,24 @@
+{
+  "game": 1,
+  "id": "the-witcher-3",
+  "name": "The Witcher 3",
+  "stores": {
+    "steam": [292030],
+    "epic": [],
+    "gog": [1207664643],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["witcher3.exe"], "launcher": ["REDprelauncher.exe"]},
+    "linux": {"game": ["witcher3.exe"], "launcher": ["REDprelauncher.exe"], "match": "cmdline"}
+  },
+  "markers": [
+    "bin/x64/witcher3.exe",
+    "bin/x64_dx12/witcher3.exe"
+  ],
+  "proton": 292030,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

@@ -112,8 +112,15 @@ func TestRepoData(t *testing.T) {
 	if len(probs) > 0 {
 		t.Fatalf("problems:\n%s", strings.Join(probs, "\n"))
 	}
-	if g := r.Games["elite-dangerous"]; g.Name != "Elite Dangerous" || len(g.Stores.Steam) != 1 {
+	if g := r.Games["elite-dangerous"]; g.Name != "Elite Dangerous" || len(g.Stores.Steam) != 1 ||
+		g.Controller == nil || *g.Controller != (GameController{Cable: "dualshock4", Bluetooth: "dualshock4"}) {
 		t.Fatalf("games/elite-dangerous.json: %+v", g)
+	}
+	w := r.Games["the-witcher-3"]
+	if w.Name != "The Witcher 3" || !slices.Equal(w.Stores.Steam, []int64{292030}) || w.Proton != 292030 ||
+		!slices.Equal(w.Exe[OSWindows].Game, []string{"witcher3.exe"}) || len(w.Markers) != 2 ||
+		w.Controller == nil || *w.Controller != (GameController{Cable: "direct", Bluetooth: "dualsense", SteamInput: SteamInputOff}) {
+		t.Fatalf("games/the-witcher-3.json: %+v", w)
 	}
 	e := r.Entries["elite"]
 	if e == nil || !e.Official || e.Repo != "getbururu/mod-elite" {
@@ -125,6 +132,52 @@ func TestRepoData(t *testing.T) {
 	}
 	if s := strings.TrimSpace(string(ref)); !regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$`).MatchString(s) {
 		t.Fatalf("tools/bururu.ref holds %q: a branch, a tag or a commit of Bururu's repo", s)
+	}
+}
+
+// TestGameController: a game record's profile names known controllers
+// only, Steam Input only "off", and a key the indexer does not know
+// refuses the file; a record without one reads as before.
+func TestGameController(t *testing.T) {
+	base, err := os.ReadFile(filepath.Join("..", "..", "games", "the-witcher-3.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name, from, to, want string
+	}{
+		{"as written", "", "", ""},
+		{"no profile", `,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}`, "", ""},
+		{"one connection", `"cable": "direct", `, "", ""},
+		{"unknown controller", `"bluetooth": "dualsense"`, `"bluetooth": "switch"`, `controller.bluetooth "switch" is not one of`},
+		{"steam input on", `"steam_input": "off"`, `"steam_input": "on"`, `controller.steam_input "on" is not "off"`},
+		{"unknown key", `"steam_input": "off"`, `"steam_input": "off", "mod": "x"`, `unknown field "mod"`},
+		{"empty", `{"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}`, `{}`, `has an empty controller`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			src := string(base)
+			if tc.from != "" {
+				if !strings.Contains(src, tc.from) {
+					t.Fatalf("the record has no %q", tc.from)
+				}
+				src = strings.Replace(src, tc.from, tc.to, 1)
+			}
+			root := testRepo(t)
+			if err := writeFile(filepath.Join(root, "games", "the-witcher-3.json"), []byte(src)); err != nil {
+				t.Fatal(err)
+			}
+			r, probs := LoadRepo(root)
+			got := strings.Join(probs, "\n")
+			switch {
+			case tc.want == "" && got != "":
+				t.Fatalf("problems:\n%s", got)
+			case tc.want != "" && !strings.Contains(got, tc.want):
+				t.Fatalf("problems %q, want %q", got, tc.want)
+			case tc.want == "" && tc.name == "no profile" && r.Games["the-witcher-3"].Controller != nil:
+				t.Fatalf("a profile from nothing: %+v", r.Games["the-witcher-3"].Controller)
+			}
+		})
 	}
 }
 

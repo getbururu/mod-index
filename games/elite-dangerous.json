@@ -20,5 +20,6 @@
     "Products/elite-dangerous-odyssey-64/EliteDangerous64.exe",
     "Products/elite-dangerous-64/EliteDangerous64.exe"
   ],
-  "proton": 359320
+  "proton": 359320,
+  "controller": {"cable": "dualshock4", "bluetooth": "dualshock4"}
 }

@@ -34,7 +34,7 @@ func TestBuildDeterministic(t *testing.T) {
 	if !bytes.Equal(a.File, b.File) || a.Same {
 		t.Fatal("two builds differ")
 	}
-	if !bytes.HasPrefix(a.File, []byte(`{"advisories":[],"games":{"elite-dangerous":{"exe":`)) || bytes.Count(a.File, []byte("\n")) != 1 {
+	if !bytes.HasPrefix(a.File, []byte(`{"advisories":[],"games":{"elite-dangerous":{"controller":{"bluetooth":"dualshock4","cable":"dualshock4"},"exe":`)) || bytes.Count(a.File, []byte("\n")) != 1 {
 		t.Fatalf("%.200s", a.File)
 	}
 	ix := a.Index

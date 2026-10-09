@@ -263,6 +263,19 @@ func checkGame(c *checker, id string, g GameRecord) {
 	if g.Proton < 0 {
 		c.fail("%s proton %d", where, g.Proton)
 	}
+	if p := g.Controller; p != nil {
+		for _, x := range []struct{ key, value string }{{"cable", p.Cable}, {"bluetooth", p.Bluetooth}} {
+			if x.value != "" && !slices.Contains(Pads, x.value) {
+				c.fail("%s.controller.%s %q is not one of %s", where, x.key, x.value, strings.Join(Pads, ", "))
+			}
+		}
+		if p.SteamInput != "" && p.SteamInput != SteamInputOff {
+			c.fail("%s.controller.steam_input %q is not %q", where, p.SteamInput, SteamInputOff)
+		}
+		if *p == (GameController{}) {
+			c.fail("%s has an empty controller", where)
+		}
+	}
 }
 
 // relPath reports a forward-slash path inside a folder.
