@@ -1,0 +1,72 @@
+name: check-report
+
+# After check-entry: posts its report on the pull request and sets the
+# required status "indexer". It checks out nothing and runs nothing from
+# the pull request; the report is plain text, cut to 60 KiB, inside a
+# code block. The pull request is found from GitHub's own data about
+# the run, never from the report.
+
+on:
+  workflow_run:
+    workflows: [check-entry]
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      pull-requests: write
+      statuses: write
+    steps:
+      - name: Post the report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          EVENT: ${{ github.event.workflow_run.event }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          HEAD_OWNER: ${{ github.event.workflow_run.head_repository.owner.login }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        run: |
+          set -eu
+          if [ "$EVENT" != pull_request ]; then
+            exit 0
+          fi
+          number="$(gh api -X GET "repos/$REPO/pulls" -f state=open -f head="$HEAD_OWNER:$HEAD_BRANCH" \
+            --jq '[.[] | select(.head.sha == env.HEAD_SHA)][0].number // empty')"
+          if [ -z "$number" ]; then
+            echo "no open pull request at $HEAD_SHA"
+            exit 0
+          fi
+          state=failure
+          if [ "$CONCLUSION" = success ]; then
+            state=success
+          fi
+          mkdir -p report
+          gh run download "$RUN_ID" --repo "$REPO" --name check-report --dir report || true
+          {
+            echo "<!-- indexer-report -->"
+            echo "The indexer's checks: $CONCLUSION."
+            echo
+            echo '```text'
+            if [ -f report/report.txt ]; then
+              head -c 61440 report/report.txt | LC_ALL=C tr -cd '\11\12\40-\176' | tr '`' "'"
+            else
+              echo "(no report: see the check-entry run)"
+            fi
+            echo
+            echo '```'
+          } > body.md
+          id="$(gh api "repos/$REPO/issues/$number/comments" --paginate \
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- indexer-report -->"))) | .id' | head -n 1)"
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$id" -F body=@body.md > /dev/null
+          else
+            gh pr comment "$number" --repo "$REPO" --body-file body.md
+          fi
+          gh api -X POST "repos/$REPO/statuses/$HEAD_SHA" -f state="$state" -f context=indexer \
+            -f description="check-entry: $CONCLUSION" > /dev/null

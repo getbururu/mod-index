@@ -1,0 +1,147 @@
+name: poll
+
+# Every 6 hours, on demand, and when an entry changes on main: find new
+# versions in the listed repos and open one bot pull request per change.
+# The fetch job builds Bururu, whose `mod check` and `mod listing` judge
+# each pack. Bururu's repo is private, so the job reads it with the
+# BURURU_READ secret (a read-only token for getbururu/bururu); without
+# that secret nothing is polled. The fetch job downloads and parses packs
+# nobody has reviewed yet, so it can write nothing; the propose job reads
+# its result as data through the indexer's strict readers and runs
+# nothing from it.
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['entries/**']
+
+permissions: {}
+
+concurrency:
+  group: poll
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.27.1'
+          cache: false
+      - name: The Bururu ref
+        id: ref
+        env:
+          HAS: ${{ secrets.BURURU_READ != '' }}
+        run: |
+          ref="$(tr -d ' \r\n' < tools/bururu.ref)"
+          if ! printf '%s' "$ref" | grep -Eq '^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$'; then
+            echo "tools/bururu.ref holds '$ref': a branch, a tag or a commit of Bururu's repo"
+            exit 1
+          fi
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "has=$HAS" >> "$GITHUB_OUTPUT"
+      - name: Check out Bururu at the ref
+        if: steps.ref.outputs.has == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: getbururu/bururu
+          ref: ${{ steps.ref.outputs.ref }}
+          token: ${{ secrets.BURURU_READ }}
+          path: bururu
+          persist-credentials: false
+      - name: GitHub's ETags from earlier runs
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: etags
+          key: etags-${{ github.run_id }}
+          restore-keys: etags-
+      - name: Poll
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          HAS: ${{ steps.ref.outputs.has }}
+        run: |
+          set -eu
+          go build -o "$RUNNER_TEMP/indexer" ./tools/indexer
+          if [ "$HAS" != true ]; then
+            echo "::warning::no BURURU_READ secret, so no Bururu to check packs with: nothing polled"
+            mkdir -p out
+            printf '{"changes": 1, "list": []}\n' > out/changes.json
+            : > out/skipped.txt
+            exit 0
+          fi
+          commit="$(git -C bururu rev-parse HEAD)"
+          (cd bururu && GOOS=linux CGO_ENABLED=0 go build -trimpath -o "$RUNNER_TEMP/bururu" ./cmd/bururu)
+          rm -rf bururu
+          "$RUNNER_TEMP/indexer" poll -bururu "$RUNNER_TEMP/bururu" -ref "$commit" -out out -cache etags | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: poll
+          path: out
+          retention-days: 7
+
+  propose:
+    needs: fetch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      statuses: write
+    steps:
+      # main's own code only; the poll's result is data
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.27.1'
+          cache: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: poll
+          path: ${{ runner.temp }}/poll
+      - name: Open or update the pull requests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          go build -o "$RUNNER_TEMP/indexer" ./tools/indexer
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          in="$RUNNER_TEMP/poll"
+          "$RUNNER_TEMP/indexer" plan -in "$in" > "$RUNNER_TEMP/plan.tsv"
+          base="$(git rev-parse HEAD)"
+          tab="$(printf '\t')"
+          while IFS="$tab" read -r key id branch title; do
+            git checkout -q -B "$branch" "$base"
+            "$RUNNER_TEMP/indexer" apply -in "$in" -key "$key" -body "$RUNNER_TEMP/body.md"
+            git add -A state files
+            if git diff --cached --quiet; then
+              echo "$key: nothing to change"
+              continue
+            fi
+            git commit -q -m "$title"
+            head="$(git rev-parse HEAD)"
+            if git fetch -q origin "refs/heads/$branch" 2>/dev/null && git diff --quiet FETCH_HEAD HEAD; then
+              head="$(git rev-parse FETCH_HEAD)"
+              echo "$branch: unchanged"
+            else
+              git push -q -f origin "HEAD:refs/heads/$branch"
+            fi
+            number="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')"
+            if [ -z "$number" ]; then
+              gh pr create --base main --head "$branch" --title "$title" --body-file "$RUNNER_TEMP/body.md"
+            else
+              gh pr edit "$number" --title "$title" --body-file "$RUNNER_TEMP/body.md"
+            fi
+            gh api -X POST "repos/$GITHUB_REPOSITORY/statuses/$head" -f state=success -f context=indexer \
+              -f description="The poll's result passed the strict readers" > /dev/null
+            echo "$id: $title" >> "$GITHUB_STEP_SUMMARY"
+          done < "$RUNNER_TEMP/plan.tsv"
+          git checkout -q "$base"

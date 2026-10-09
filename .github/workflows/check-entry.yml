@@ -1,0 +1,77 @@
+name: check-entry
+
+# Every pull request: the indexer's tests, every data file read strictly,
+# and for each entry the pull request adds or changes, its repo and the
+# pack of its newest release. The pack itself is checked by the poll
+# after the merge. Pull request content runs here, so both jobs can only
+# read and see no secret. check-report.yml posts the report and sets the
+# status "indexer".
+
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.27.1'
+          cache: false
+      - name: gofmt, vet, test
+        run: |
+          unformatted="$(gofmt -l tools)"
+          if [ -n "$unformatted" ]; then
+            echo "$unformatted"
+            exit 1
+          fi
+          go vet ./...
+          go test ./...
+      - name: Data files
+        run: go run ./tools/indexer validate
+
+  entries:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # the indexer that judges comes from the base branch; the pull
+      # request gives only its data
+      - name: Check out the base branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+          persist-credentials: false
+      - name: Check out the pull request
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: pr
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.27.1'
+          cache: false
+      - name: Check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          ASSOCIATION: ${{ github.event.pull_request.author_association }}
+        run: |
+          (cd base && go build -o "$RUNNER_TEMP/indexer" ./tools/indexer)
+          "$RUNNER_TEMP/indexer" check-pr -base base -pr pr -out report -author "$AUTHOR" -association "$ASSOCIATION"
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: check-report
+          path: report/report.txt
+          if-no-files-found: ignore
+          retention-days: 7

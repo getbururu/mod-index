@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: How to list a mod
+    url: https://github.com/getbururu/mod-index/blob/main/docs/listing.md
+    about: Listing is a pull request that adds entries/<id>.json; this guide walks through it.

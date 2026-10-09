@@ -1,0 +1,9 @@
+# what the indexer writes when run by hand
+/out/
+/site/
+*.brr
+
+# left behind by file managers
+.DS_Store
+Thumbs.db
+desktop.ini

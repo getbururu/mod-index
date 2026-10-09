@@ -1,0 +1,24 @@
+{
+  "game": 1,
+  "id": "elite-dangerous",
+  "name": "Elite Dangerous",
+  "stores": {
+    "steam": [359320],
+    "epic": [{"app": "", "namespace": "3db17abfd650423f993291624b1b2ac1", "item": "9b8ee44da2e84b139c7444ab002cbc35"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["EliteDangerous64.exe"], "launcher": ["EDLaunch.exe"]},
+    "linux": {"game": ["EliteDangerous64.exe"], "launcher": ["EDLaunch.exe"], "match": "cmdline"}
+  },
+  "markers": [
+    "EDLaunch.exe",
+    "Products/elite-dangerous-odyssey-64/EliteDangerous64.exe",
+    "Products/elite-dangerous-64/EliteDangerous64.exe"
+  ],
+  "proton": 359320
+}

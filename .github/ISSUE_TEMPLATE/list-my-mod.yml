@@ -1,0 +1,47 @@
+name: List my mod
+description: Ask for help listing a mod, or ask a maintainer to open the entry for you.
+title: "List: <mod id>"
+labels: [listing]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The usual way to list a mod is a pull request that adds `entries/<id>.json`; see [docs/listing.md](https://github.com/getbururu/mod-index/blob/main/docs/listing.md). Use this form when a pull request is not an option for you, or when something in the guide is unclear.
+  - type: input
+    id: repo
+    attributes:
+      label: Repo
+      description: Your mod's repo on GitHub, as owner/name.
+      placeholder: your-login/gravel-rally
+    validations:
+      required: true
+  - type: input
+    id: id
+    attributes:
+      label: Mod id
+      description: The id in your manifest.json.
+      placeholder: gravel-rally
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What it does
+      description: A few sentences. Name the game, and every folder, port or screen use the mod needs, and why.
+    validations:
+      required: true
+  - type: checkboxes
+    id: ready
+    attributes:
+      label: Ready to list
+      options:
+        - label: The repo is public, and I own or administer it.
+          required: true
+        - label: The newest release has the asset <id>-<version>.brr, made with `brr mod pack`, and `brr mod check` passes on it. Other assets, such as SHA256SUMS, are fine.
+          required: true
+        - label: The repo has a README, a CHANGELOG with a section per version, and a licence file.
+          required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else

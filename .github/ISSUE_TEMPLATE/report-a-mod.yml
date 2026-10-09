@@ -1,0 +1,43 @@
+name: Report a mod
+description: A listed mod that does harm, breaks, misleads or poses as something it is not.
+title: "Report: <mod id> <version>"
+labels: [report]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you. A maintainer reads every report. For harm (malware, data sent off your PC, an attack on Bururu's sandbox), a maintainer can switch the mod off in every Bururu that reads the list. Leave out personal data: no paths with your user name, no logs with your account names.
+  - type: input
+    id: mod
+    attributes:
+      label: Mod and version
+      description: As Bururu shows them under Mods, or the id and version from the mod's repo.
+      placeholder: gravel-rally 1.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is wrong
+      options:
+        - It does harm, or sends data off my PC
+        - It poses as another mod, a game studio or Bururu
+        - It reads folders or uses ports it has no need for
+        - It breaks, or breaks Bururu
+        - Its listing (name, README, icon) is misleading or offensive
+        - Licence or copyright problem
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: What happens, and how to see it
+      description: Steps, what you expected, what happened. Lines of the mod's Lua or files help.
+    validations:
+      required: true
+  - type: input
+    id: bururu
+    attributes:
+      label: Bururu version
+      description: From About in Bururu's window.

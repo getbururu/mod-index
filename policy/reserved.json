@@ -1,0 +1,12 @@
+{
+  "reserved": 1,
+  "ids": [
+    "bururu", "brr", "edsense", "ed-sense", "core", "official", "index", "mod-index",
+    "elite", "racing",
+    "quiet-cockpit", "my-data-mod", "my-lua-mod", "my-udp-game"
+  ],
+  "names": [
+    "Bururu", "EDSense", "official", "getbururu",
+    "Frontier", "Frontier Developments"
+  ]
+}
