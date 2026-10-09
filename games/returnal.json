@@ -1,0 +1,24 @@
+{
+  "game": 1,
+  "id": "returnal",
+  "name": "Returnal",
+  "stores": {
+    "steam": [1649240],
+    "epic": [{"app": "e5f031908d2e460b8757387d1a136e48", "namespace": "4c461792757541e99c4a16c00834c956", "item": "d92d3606b6e4416ba9447124567dd30b"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["Returnal-Win64-Shipping.exe"], "launcher": ["Launcher.exe", "Returnal.exe"]},
+    "linux": {"game": ["Returnal-Win64-Shipping.exe"], "launcher": ["Launcher.exe", "Returnal.exe"], "match": "cmdline"}
+  },
+  "markers": [
+    "Returnal/Binaries/Win64/Returnal-Win64-Shipping.exe",
+    "Returnal/Binaries/Win64/Launcher.exe"
+  ],
+  "proton": 1649240,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

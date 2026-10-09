@@ -1,0 +1,23 @@
+{
+  "game": 1,
+  "id": "ghost-of-tsushima",
+  "name": "Ghost of Tsushima",
+  "stores": {
+    "steam": [2215430],
+    "epic": [{"app": "cd231060e6744ffb97684767b07d2b77", "namespace": "6e6aa039c73347b885803de65ac5d3db", "item": "2e4b96035a51432b9eec5c3970772580"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["GhostOfTsushima.exe"], "launcher": []},
+    "linux": {"game": ["GhostOfTsushima.exe"], "launcher": [], "match": "cmdline"}
+  },
+  "markers": [
+    "GhostOfTsushima.exe"
+  ],
+  "proton": 2215430,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

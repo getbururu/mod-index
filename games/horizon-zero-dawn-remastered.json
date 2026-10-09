@@ -1,0 +1,23 @@
+{
+  "game": 1,
+  "id": "horizon-zero-dawn-remastered",
+  "name": "Horizon Zero Dawn Remastered",
+  "stores": {
+    "steam": [2561580],
+    "epic": [{"app": "4af7cb19d9db48878d2ffe0edc8440a2", "namespace": "f4bfcee7af9b46f182ac93bd01494595", "item": "5695bbc03b314f3684208de359e9b992"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["HorizonZeroDawnRemastered.exe"], "launcher": []},
+    "linux": {"game": ["HorizonZeroDawnRemastered.exe"], "launcher": [], "match": "cmdline"}
+  },
+  "markers": [
+    "HorizonZeroDawnRemastered.exe"
+  ],
+  "proton": 2561580,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

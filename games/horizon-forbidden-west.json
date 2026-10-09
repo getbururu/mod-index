@@ -1,0 +1,23 @@
+{
+  "game": 1,
+  "id": "horizon-forbidden-west",
+  "name": "Horizon Forbidden West",
+  "stores": {
+    "steam": [2420110],
+    "epic": [{"app": "2efe99166b8847e9bcd80c571b05e1b6", "namespace": "24cc2629b0594bf29340f6acf9816af8", "item": "088246f5059a4af1ab848f7ce01ecc69"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["HorizonForbiddenWest.exe"], "launcher": []},
+    "linux": {"game": ["HorizonForbiddenWest.exe"], "launcher": [], "match": "cmdline"}
+  },
+  "markers": [
+    "HorizonForbiddenWest.exe"
+  ],
+  "proton": 2420110,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

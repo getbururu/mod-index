@@ -1,0 +1,23 @@
+{
+  "game": 1,
+  "id": "stellar-blade",
+  "name": "Stellar Blade",
+  "stores": {
+    "steam": [3489700],
+    "epic": [{"app": "4013d48a20c1403282fc9d1453ec8f5a", "namespace": "321685d747d24252b113786aecadd53e", "item": "c22b88be94c4494f992c81366f0583a1"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["SB-Win64-Shipping.exe"], "launcher": ["SB.exe"]},
+    "linux": {"game": ["SB-Win64-Shipping.exe"], "launcher": ["SB.exe"], "match": "cmdline"}
+  },
+  "markers": [
+    "SB/Binaries/Win64/SB-Win64-Shipping.exe"
+  ],
+  "proton": 3489700,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

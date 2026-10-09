@@ -1,0 +1,23 @@
+{
+  "game": 1,
+  "id": "marvels-spider-man-miles-morales",
+  "name": "Marvel's Spider-Man: Miles Morales",
+  "stores": {
+    "steam": [1817190],
+    "epic": [{"app": "eb2c955d6a494dfb9b7e09e0145668a1", "namespace": "f696430be718494fac1d6542cfb22542", "item": "bef85f6910e447c59bdcf2ab5b3eb404"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["MilesMorales.exe"], "launcher": []},
+    "linux": {"game": ["MilesMorales.exe"], "launcher": [], "match": "cmdline"}
+  },
+  "markers": [
+    "MilesMorales.exe"
+  ],
+  "proton": 1817190,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

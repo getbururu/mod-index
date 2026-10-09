@@ -1,0 +1,23 @@
+{
+  "game": 1,
+  "id": "cyberpunk-2077",
+  "name": "Cyberpunk 2077",
+  "stores": {
+    "steam": [1091500],
+    "epic": [{"app": "Ginger", "namespace": "77f2b98e2cef40c8a7437518bf420e47", "item": "5beededaad9743df90e8f07d92df153f"}],
+    "gog": [1423049311],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["Cyberpunk2077.exe"], "launcher": ["REDprelauncher.exe"]},
+    "linux": {"game": ["Cyberpunk2077.exe"], "launcher": ["REDprelauncher.exe"], "match": "cmdline"}
+  },
+  "markers": [
+    "bin/x64/Cyberpunk2077.exe"
+  ],
+  "proton": 1091500,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

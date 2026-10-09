@@ -1,0 +1,23 @@
+{
+  "game": 1,
+  "id": "assassins-creed-shadows",
+  "name": "Assassin's Creed Shadows",
+  "stores": {
+    "steam": [3159330],
+    "epic": [{"app": "a1a86c2450de45989bda712385f66c9d", "namespace": "14a28903e3d14bd5aa3e6dbf10868126", "item": "1b4834d50e1847869dff66508a2c0872"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["ACShadows.exe"], "launcher": []},
+    "linux": {"game": ["ACShadows.exe"], "launcher": [], "match": "cmdline"}
+  },
+  "markers": [
+    "ACShadows.exe"
+  ],
+  "proton": 3159330,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

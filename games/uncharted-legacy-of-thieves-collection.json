@@ -1,0 +1,24 @@
+{
+  "game": 1,
+  "id": "uncharted-legacy-of-thieves-collection",
+  "name": "Uncharted: Legacy of Thieves Collection",
+  "stores": {
+    "steam": [1659420],
+    "epic": [{"app": "0ef5f1eaa6be4d648f6e9252aa02c5cf", "namespace": "8b2d6cf2b45b41f1abe91bc5b7c1e8f9", "item": "0ece9f70f51b425781f14c914b108cac"}],
+    "gog": [1451150270],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["u4.exe", "tll.exe", "u4-l.exe", "tll-l.exe"], "launcher": []},
+    "linux": {"game": ["u4.exe", "tll.exe", "u4-l.exe", "tll-l.exe"], "launcher": [], "match": "cmdline"}
+  },
+  "markers": [
+    "u4.exe",
+    "tll.exe"
+  ],
+  "proton": 1659420,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

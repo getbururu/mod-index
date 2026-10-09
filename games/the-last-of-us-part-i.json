@@ -1,0 +1,24 @@
+{
+  "game": 1,
+  "id": "the-last-of-us-part-i",
+  "name": "The Last of Us Part I",
+  "stores": {
+    "steam": [1888930],
+    "epic": [{"app": "7e988ba04889404197fdf06c994326ed", "namespace": "0c40923dd1174a768f732a3b013dcff2", "item": "e9c47d47c2ac44f3a032e9d645096535"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["tlou-i.exe", "tlou-i-l.exe"], "launcher": ["launcher.exe"]},
+    "linux": {"game": ["tlou-i.exe", "tlou-i-l.exe"], "launcher": ["launcher.exe"], "match": "cmdline"}
+  },
+  "markers": [
+    "tlou-i.exe",
+    "tlou-i-l.exe"
+  ],
+  "proton": 1888930,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

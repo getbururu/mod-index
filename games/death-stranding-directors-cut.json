@@ -1,0 +1,24 @@
+{
+  "game": 1,
+  "id": "death-stranding-directors-cut",
+  "name": "Death Stranding Director's Cut",
+  "stores": {
+    "steam": [1850570],
+    "epic": [{"app": "c38f51843fdf4db0b24fc907b8d78221", "namespace": "0a9e3c5ab6684506bd624a849ca0cf39", "item": "202e7a517bac4c278cec2ea3cd4dec05"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["ds.exe", "DeathStranding.exe"], "launcher": []},
+    "linux": {"game": ["ds.exe", "DeathStranding.exe"], "launcher": [], "match": "cmdline"}
+  },
+  "markers": [
+    "ds.exe",
+    "DeathStranding.exe"
+  ],
+  "proton": 1850570,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

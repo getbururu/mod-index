@@ -1,0 +1,23 @@
+{
+  "game": 1,
+  "id": "god-of-war-ragnarok",
+  "name": "God of War Ragnarok",
+  "stores": {
+    "steam": [2322010],
+    "epic": [{"app": "456afef39a4c4cbbb6b17e92201443d7", "namespace": "862d80a2d1044d88b01104b3ebaed032", "item": "634aa3f4ee28452fa9a9a175561d0e67"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["GoWR.exe"], "launcher": []},
+    "linux": {"game": ["GoWR.exe"], "launcher": [], "match": "cmdline"}
+  },
+  "markers": [
+    "GoWR.exe"
+  ],
+  "proton": 2322010,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

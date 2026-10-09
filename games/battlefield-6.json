@@ -1,0 +1,23 @@
+{
+  "game": 1,
+  "id": "battlefield-6",
+  "name": "Battlefield 6",
+  "stores": {
+    "steam": [2807960],
+    "epic": [{"app": "Glacier", "namespace": "a14a02aa3c8143729605eaf7c93d7501", "item": "5e5e3e5246034e1f8eb1b76f54c9d719"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["bf6.exe"], "launcher": ["EAAntiCheat.GameServiceLauncher.exe"]},
+    "linux": {"game": ["bf6.exe"], "launcher": ["EAAntiCheat.GameServiceLauncher.exe"], "match": "cmdline"}
+  },
+  "markers": [
+    "SP/bf6.exe"
+  ],
+  "proton": 2807960,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

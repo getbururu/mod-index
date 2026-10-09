@@ -1,0 +1,23 @@
+{
+  "game": 1,
+  "id": "grand-theft-auto-v-enhanced",
+  "name": "Grand Theft Auto V Enhanced",
+  "stores": {
+    "steam": [3240220],
+    "epic": [{"app": "8769e24080ea413b8ebca3f1b8c50951", "namespace": "b0cd075465c44f87be3b505ac04a2e46", "item": "122e5e90b7b8424d930be8bc1a7e05fb"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["GTA5_Enhanced.exe"], "launcher": ["PlayGTAV.exe", "GTA5_Enhanced_BE.exe"]},
+    "linux": {"game": ["GTA5_Enhanced.exe"], "launcher": ["PlayGTAV.exe", "GTA5_Enhanced_BE.exe"], "match": "cmdline"}
+  },
+  "markers": [
+    "GTA5_Enhanced.exe"
+  ],
+  "proton": 3240220,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

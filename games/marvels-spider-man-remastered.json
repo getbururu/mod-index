@@ -1,0 +1,23 @@
+{
+  "game": 1,
+  "id": "marvels-spider-man-remastered",
+  "name": "Marvel's Spider-Man Remastered",
+  "stores": {
+    "steam": [1817070],
+    "epic": [{"app": "be23672deb69402781cd47cc2919caf4", "namespace": "4bc43145bb8245a5b5cc9ea262ffbe0e", "item": "6f39a1e367f2441586f5ab1c170e456b"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["Spider-Man.exe"], "launcher": []},
+    "linux": {"game": ["Spider-Man.exe"], "launcher": [], "match": "cmdline"}
+  },
+  "markers": [
+    "Spider-Man.exe"
+  ],
+  "proton": 1817070,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

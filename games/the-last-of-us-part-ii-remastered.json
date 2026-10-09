@@ -1,0 +1,24 @@
+{
+  "game": 1,
+  "id": "the-last-of-us-part-ii-remastered",
+  "name": "The Last of Us Part II Remastered",
+  "stores": {
+    "steam": [2531310],
+    "epic": [{"app": "831cd8c0c25b4615ade419ecb4f50e42", "namespace": "7713e3fa4b234e0d8f553044205d53b6", "item": "3dff34510c1b4ac89d587a482100ca65"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["tlou-ii.exe", "tlou-ii-l.exe"], "launcher": ["launcher.exe"]},
+    "linux": {"game": ["tlou-ii.exe", "tlou-ii-l.exe"], "launcher": ["launcher.exe"], "match": "cmdline"}
+  },
+  "markers": [
+    "tlou-ii.exe",
+    "tlou-ii-l.exe"
+  ],
+  "proton": 2531310,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

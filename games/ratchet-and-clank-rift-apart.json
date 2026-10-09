@@ -1,0 +1,23 @@
+{
+  "game": 1,
+  "id": "ratchet-and-clank-rift-apart",
+  "name": "Ratchet & Clank: Rift Apart",
+  "stores": {
+    "steam": [1895880],
+    "epic": [{"app": "32c5bc05670d455fb601c8d97a35297c", "namespace": "046aeb7098b94ac3961dad6c5dbe68c0", "item": "8bfef67afa5b4602955563400f93f818"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["RiftApart.exe"], "launcher": []},
+    "linux": {"game": ["RiftApart.exe"], "launcher": [], "match": "cmdline"}
+  },
+  "markers": [
+    "RiftApart.exe"
+  ],
+  "proton": 1895880,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

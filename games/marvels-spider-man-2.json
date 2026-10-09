@@ -1,0 +1,23 @@
+{
+  "game": 1,
+  "id": "marvels-spider-man-2",
+  "name": "Marvel's Spider-Man 2",
+  "stores": {
+    "steam": [2651280],
+    "epic": [{"app": "0c6db5941ac8420aabbd8510e94e7d9a", "namespace": "b2818b59c0bb420e9647983dfd254931", "item": "685032f3d8c74de5bcf123558c8f6b16"}],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["Spider-Man2.exe"], "launcher": []},
+    "linux": {"game": ["Spider-Man2.exe"], "launcher": [], "match": "cmdline"}
+  },
+  "markers": [
+    "Spider-Man2.exe"
+  ],
+  "proton": 2651280,
+  "controller": {"cable": "direct", "bluetooth": "dualsense", "steam_input": "off"}
+}

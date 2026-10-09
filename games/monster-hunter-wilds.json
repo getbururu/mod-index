@@ -1,0 +1,23 @@
+{
+  "game": 1,
+  "id": "monster-hunter-wilds",
+  "name": "Monster Hunter Wilds",
+  "stores": {
+    "steam": [2246340],
+    "epic": [],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["MonsterHunterWilds.exe"], "launcher": []},
+    "linux": {"game": ["MonsterHunterWilds.exe"], "launcher": [], "match": "cmdline"}
+  },
+  "markers": [
+    "MonsterHunterWilds.exe"
+  ],
+  "proton": 2246340,
+  "controller": {"cable": "direct"}
+}
