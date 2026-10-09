@@ -1,0 +1,23 @@
+{
+  "game": 1,
+  "id": "crimson-desert",
+  "name": "Crimson Desert",
+  "stores": {
+    "steam": [3321460],
+    "epic": [],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["CrimsonDesert.exe"], "launcher": []},
+    "linux": {"game": ["CrimsonDesert.exe"], "launcher": [], "match": "cmdline"}
+  },
+  "markers": [
+    "bin64/CrimsonDesert.exe"
+  ],
+  "proton": 3321460,
+  "controller": {"cable": "direct", "bluetooth": "dualsense"}
+}
