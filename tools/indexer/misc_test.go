@@ -355,18 +355,24 @@ func TestEliteEntry(t *testing.T) {
 	}
 }
 
-// TestSameLink: a published link may change only by a repo rename with
-// the same repo id.
+// TestSameLink: a published link may change only by a repo rename (same
+// repo id) or a repo made again by the same owner (same owner id).
 func TestSameLink(t *testing.T) {
-	old := Mod{Repo: "getbururu/mod-elite", RepoID: 7}
-	renamed := Mod{Repo: "getbururu/brr-elite", RepoID: 7}
-	other := Mod{Repo: "someone/brr-elite", RepoID: 9}
+	old := Mod{Repo: "getbururu/mod-elite", RepoID: 7, OwnerID: 1}
+	renamed := Mod{Repo: "getbururu/brr-elite", RepoID: 7, OwnerID: 1}
+	remade := Mod{Repo: "getbururu/brr-elite", RepoID: 8, OwnerID: 1}
+	other := Mod{Repo: "someone/brr-elite", RepoID: 9, OwnerID: 2}
+	noIDs := Mod{Repo: "getbururu/mod-elite"}
 	a := "https://github.com/getbururu/mod-elite/releases/download/v0.1.0/elite-0.1.0.brr"
 	b := "https://github.com/getbururu/brr-elite/releases/download/v0.1.0/elite-0.1.0.brr"
-	if !sameLink(a, a, old, old) || !sameLink(a, b, old, renamed) {
-		t.Fatal("same link or a rename refused")
+	c := "https://github.com/someone/brr-elite/releases/download/v0.1.0/elite-0.1.0.brr"
+	if !sameLink(a, a, old, old) || !sameLink(a, b, old, renamed) || !sameLink(a, b, old, remade) {
+		t.Fatal("same link, a rename or a remade repo refused")
 	}
-	if sameLink(a, b, old, other) || sameLink(a, b+"x", old, renamed) || sameLink(a, b, old, old) {
-		t.Fatal("a different repo or file passed")
+	if sameLink(a, c, old, other) || sameLink(a, b+"x", old, renamed) || sameLink(a, b, old, old) {
+		t.Fatal("a different owner, file or repo passed")
+	}
+	if sameLink(a, b, noIDs, Mod{Repo: "getbururu/brr-elite"}) {
+		t.Fatal("a move without ids passed")
 	}
 }

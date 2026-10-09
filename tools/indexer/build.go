@@ -122,14 +122,20 @@ func ReadSite(v1 string) (*Index, error) {
 }
 
 // sameLink: a published version's link is the same, or differs only
-// because its repo was renamed: same repo id, and the link with the old
-// repo name swapped for the new one (the hash and size are checked as
-// well, so the file is the same).
+// because its repo moved: renamed (same repo id) or deleted and made
+// again by the same owner (same owner id). The new link must be the old
+// one with the old repo name swapped for the new one (the hash and size
+// are checked as well, so the file is the same).
 func sameLink(prevURL, newURL string, prev, cur Mod) bool {
 	if prevURL == newURL {
 		return true
 	}
-	if prev.RepoID == 0 || prev.RepoID != cur.RepoID || prev.Repo == "" || cur.Repo == "" || prev.Repo == cur.Repo {
+	if prev.Repo == "" || cur.Repo == "" || prev.Repo == cur.Repo {
+		return false
+	}
+	sameRepo := prev.RepoID != 0 && prev.RepoID == cur.RepoID
+	sameOwner := prev.OwnerID != 0 && prev.OwnerID == cur.OwnerID
+	if !sameRepo && !sameOwner {
 		return false
 	}
 	return strings.Replace(prevURL, "github.com/"+prev.Repo+"/", "github.com/"+cur.Repo+"/", 1) == newURL
