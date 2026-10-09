@@ -26,8 +26,8 @@
   "note": "",
   "owner_id": 339342163,
   "owner_login": "getbururu",
-  "repo": "getbururu/brr-valheim",
-  "repo_id": 1412083901,
+  "repo": "getbururu/bururu-valheim",
+  "repo_id": 1412551006,
   "state": 1,
   "status": "listed",
   "versions": {
@@ -73,7 +73,7 @@
       },
       "sha256": "db3cd3238422b04f97d43630e33134e5aa924e4fc646017fe50fb8454c29542f",
       "size": 21156,
-      "url": "https://github.com/getbururu/brr-valheim/releases/download/v0.1.0/valheim-0.1.0.brr"
+      "url": "https://github.com/getbururu/bururu-valheim/releases/download/v0.1.0/valheim-0.1.0.brr"
     }
   }
 }

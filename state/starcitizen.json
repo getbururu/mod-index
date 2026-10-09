@@ -26,8 +26,8 @@
   "note": "",
   "owner_id": 339342163,
   "owner_login": "getbururu",
-  "repo": "getbururu/brr-starcitizen",
-  "repo_id": 1412091277,
+  "repo": "getbururu/bururu-starcitizen",
+  "repo_id": 1412549785,
   "state": 1,
   "status": "listed",
   "versions": {
@@ -71,7 +71,7 @@
       },
       "sha256": "05f66c71257068e3174a300dc5ff8cc259f2ea410984ba1837da1eb27258e460",
       "size": 107962,
-      "url": "https://github.com/getbururu/brr-starcitizen/releases/download/v0.1.0/starcitizen-0.1.0.brr"
+      "url": "https://github.com/getbururu/bururu-starcitizen/releases/download/v0.1.0/starcitizen-0.1.0.brr"
     }
   }
 }
