@@ -1,0 +1,22 @@
+{
+  "game": 1,
+  "id": "star-citizen",
+  "name": "Star Citizen",
+  "stores": {
+    "steam": [],
+    "epic": [],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["StarCitizen.exe"], "launcher": ["RSI Launcher.exe"]}
+  },
+  "markers": [
+    "Bin64/StarCitizen.exe",
+    "Data.p4k"
+  ],
+  "controller": {"cable": "xbox360", "bluetooth": "xbox360"}
+}

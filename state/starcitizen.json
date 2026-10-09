@@ -1,0 +1,77 @@
+{
+  "gone_since": "",
+  "id": "starcitizen",
+  "mod": {
+    "authors": [
+      "Bururu"
+    ],
+    "for": [],
+    "games": [
+      "star-citizen"
+    ],
+    "icon": {
+      "builtin": "ship",
+      "png": null
+    },
+    "kind": "game",
+    "license": "MIT",
+    "name": "Star Citizen",
+    "provides": [],
+    "readme": {
+      "sha256": "46970e944ec633fea023af2980ebe7516a7db81ee32b19cbc9f5aa72be897296",
+      "size": 8767
+    },
+    "summary": "Haptics, adaptive triggers and lights for Star Citizen, from its Game.log."
+  },
+  "note": "",
+  "owner_id": 339342163,
+  "owner_login": "getbururu",
+  "repo": "getbururu/mod-starcitizen",
+  "repo_id": 1412091277,
+  "state": 1,
+  "status": "listed",
+  "versions": {
+    "0.1.0": {
+      "api": "0.11",
+      "changelog": {
+        "sha256": "0376516bfe3d8fe1a22b31c7e4e16e7e080543a99baaacafb558ac4cfb64dc46",
+        "size": 1065
+      },
+      "checks": {
+        "checked_by": "mod-platform@50fb594",
+        "result": "pass",
+        "taste": 0,
+        "warnings": 0
+      },
+      "commit": "98d2a9fae58ab0e033795cd54f6632c96ea3755c",
+      "dependencies": {},
+      "notes": "The first release.\n\n- Reads Star Citizen's `Game.log`: the pilot seat, quantum travel, jumps, hangars, injuries, deaths, the law, contracts, blueprints and shops. Lines about other players and other ships play nothing.\n- 31 feels, each with its own level, and choices for the turn, quantum, jump, downed and fire feels.\n- R2 and L2 resist in the pilot seat and on foot with something in your hand, and are free in armistice zones, while downed and in the main menu.\n- The lightbar shows your health or the star system; the player LEDs count the jump drive's steps or your place in a hangar queue; the mic LED lights outside monitored space and pulses on low fuel.\n- Gyro aim pauses in the main menu, and in the pilot seat if you turn it off there.\n- The Home card shows your ship, the star system and your injury.\n- Hook points for add-ons: `turn@1` and `state@1`. A language pack add-on patches `data/notifications.json`.\n- Needs Bururu with mod API 0.11.",
+      "os": [
+        "windows"
+      ],
+      "permissions": {
+        "files": {
+          "log": {
+            "label": "Star Citizen folder",
+            "path": "{GameDir}",
+            "setting": "game_dir"
+          }
+        },
+        "keyboard": false,
+        "paths": [],
+        "screen": false,
+        "udp": [],
+        "udp_forward": []
+      },
+      "prerelease": false,
+      "published": "2026-10-09T15:47:14Z",
+      "review": {
+        "by": "maintainer",
+        "diff": "first"
+      },
+      "sha256": "05f66c71257068e3174a300dc5ff8cc259f2ea410984ba1837da1eb27258e460",
+      "size": 107962,
+      "url": "https://github.com/getbururu/mod-starcitizen/releases/download/v0.1.0/starcitizen-0.1.0.brr"
+    }
+  }
+}
