@@ -1,0 +1,72 @@
+{
+  "gone_since": "",
+  "id": "arcraiders",
+  "mod": {
+    "authors": [
+      "Bururu"
+    ],
+    "for": [],
+    "games": [
+      "arc-raiders"
+    ],
+    "icon": {
+      "builtin": "target",
+      "png": null
+    },
+    "kind": "game",
+    "license": "MIT",
+    "name": "ARC Raiders",
+    "provides": [],
+    "readme": {
+      "sha256": "dd565b54b834e1a2d1704211a944c633a416529d22a63a6eed302c03b4defc39",
+      "size": 5120
+    },
+    "summary": "Adaptive triggers and a lightbar colour for ARC Raiders, next to the game's own haptics."
+  },
+  "note": "",
+  "owner_id": 339342163,
+  "owner_login": "getbururu",
+  "repo": "getbururu/mod-arcraiders",
+  "repo_id": 1412083627,
+  "state": 1,
+  "status": "listed",
+  "versions": {
+    "0.1.0": {
+      "api": "0.11",
+      "changelog": {
+        "sha256": "8e6f4b8ca54e9c9a4f5cfb20b02168605c937ba9f2a056bea0a3b854b77f81ab",
+        "size": 590
+      },
+      "checks": {
+        "checked_by": "mod-platform@50fb594",
+        "result": "pass",
+        "taste": 0,
+        "warnings": 0
+      },
+      "commit": "5599b7678d85bc47781b9efa3088e6e3560a4342",
+      "dependencies": {},
+      "notes": "The first release.\n\n- R2 clicks like a gun trigger and L2 has a light wall while ARC Raiders is in front; both are free while it is in the background.\n- A calm lightbar colour while the game runs, or off.\n- The haptics stay the game's own.\n- Works on the USB cable only for now. On Bluetooth Bururu leaves the controller to the game.\n- Reads only the controller: no game files, no screen, no keys.\n- A page in Bururu: Effects (Triggers, Lightbar).\n- Needs Bururu with mod API 0.11.",
+      "os": [
+        "windows",
+        "linux"
+      ],
+      "permissions": {
+        "files": {},
+        "keyboard": false,
+        "paths": [],
+        "screen": false,
+        "udp": [],
+        "udp_forward": []
+      },
+      "prerelease": false,
+      "published": "2026-10-09T15:41:56Z",
+      "review": {
+        "by": "maintainer",
+        "diff": "first"
+      },
+      "sha256": "98dbac179b2d592f88fc3b9c7d2dbecfce8f922f168f6f338463b7771ecbcc2e",
+      "size": 8030,
+      "url": "https://github.com/getbururu/mod-arcraiders/releases/download/v0.1.0/arcraiders-0.1.0.brr"
+    }
+  }
+}

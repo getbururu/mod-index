@@ -1,0 +1,79 @@
+{
+  "gone_since": "",
+  "id": "valheim",
+  "mod": {
+    "authors": [
+      "Bururu"
+    ],
+    "for": [],
+    "games": [
+      "valheim"
+    ],
+    "icon": {
+      "builtin": "target",
+      "png": null
+    },
+    "kind": "game",
+    "license": "MIT",
+    "name": "Valheim",
+    "provides": [],
+    "readme": {
+      "sha256": "0fb1f58383c78455342672720b9564c8ae451e0fe2a54f56b1a0c573098a1375",
+      "size": 6461
+    },
+    "summary": "Haptics, adaptive triggers and lights for Valheim."
+  },
+  "note": "",
+  "owner_id": 339342163,
+  "owner_login": "getbururu",
+  "repo": "getbururu/mod-valheim",
+  "repo_id": 1412083901,
+  "state": 1,
+  "status": "listed",
+  "versions": {
+    "0.1.0": {
+      "api": "0.11",
+      "changelog": {
+        "sha256": "5ecbacdbb14c52ba66342ace61c2bd2e9fbc45db1605f649b35168e7c647efe1",
+        "size": 860
+      },
+      "checks": {
+        "checked_by": "mod-platform@50fb594",
+        "result": "pass",
+        "taste": 0,
+        "warnings": 0
+      },
+      "commit": "5d8cdecfe7740cd7969d700cdedc30941cdbc889",
+      "dependencies": {},
+      "notes": "The first release.\n\n- Attack feels from the controller: Swing (a soft swell on each attack) or Bow (a click as the draw starts, a tick at full draw, the string's snap on release), and a light thud when you block.\n- R2 follows the attack feel: a light click, or a pull that gets heavier for the bow. L2 resists a little, for the block.\n- From Valheim's log: drums when a raid starts, and a slow swell when the night passes in bed (the swell only when you play alone or host).\n- The lightbar glows a dim fire colour in a world and blinks red as a raid starts.\n- Pages in Bururu: Effects (Haptics, Triggers, Lights) and Settings (Valheim's controls, Valheim's files).\n- Hook points for add-ons: `attack@1` and `state@1`.\n- Needs Bururu with mod API 0.11.",
+      "os": [
+        "windows",
+        "linux"
+      ],
+      "permissions": {
+        "files": {
+          "logs": {
+            "label": "Valheim's log",
+            "linux": "{RoamingAppData}/unity3d/IronGate/Valheim",
+            "path": "{Home}/AppData/LocalLow/IronGate/Valheim",
+            "setting": "log_dir"
+          }
+        },
+        "keyboard": false,
+        "paths": [],
+        "screen": false,
+        "udp": [],
+        "udp_forward": []
+      },
+      "prerelease": false,
+      "published": "2026-10-09T15:42:06Z",
+      "review": {
+        "by": "maintainer",
+        "diff": "first"
+      },
+      "sha256": "db3cd3238422b04f97d43630e33134e5aa924e4fc646017fe50fb8454c29542f",
+      "size": 21156,
+      "url": "https://github.com/getbururu/mod-valheim/releases/download/v0.1.0/valheim-0.1.0.brr"
+    }
+  }
+}

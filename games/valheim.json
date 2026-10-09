@@ -1,0 +1,22 @@
+{
+  "game": 1,
+  "id": "valheim",
+  "name": "Valheim",
+  "stores": {
+    "steam": [892970],
+    "epic": [],
+    "gog": [],
+    "xbox": [],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["valheim.exe"]},
+    "linux": {"game": ["valheim.x86_64", "valheim.exe"], "match": "cmdline"}
+  },
+  "markers": [
+    "valheim.exe",
+    "valheim.x86_64"
+  ]
+}

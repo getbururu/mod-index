@@ -1,0 +1,24 @@
+{
+  "game": 1,
+  "id": "arc-raiders",
+  "name": "ARC Raiders",
+  "stores": {
+    "steam": [1808500],
+    "epic": [{"app": "20f01ab5e0fa4e798c6d58eeb8d86989", "namespace": "b4bb52a95d0b43d9af543c6ec3c54e04", "item": "385e1e3cc5d34c1b9f6fc5610cf60e69"}],
+    "gog": [],
+    "xbox": [{"family": "Embark.arc-raiders_kd876xf6dde24", "store_id": "9NDF1F263RZ4"}],
+    "ubisoft": [],
+    "battlenet": [],
+    "ea": []
+  },
+  "exe": {
+    "windows": {"game": ["PioneerGame.exe"]},
+    "linux": {"game": ["PioneerGame.exe"], "match": "cmdline"}
+  },
+  "markers": [
+    "PioneerGame.exe",
+    "PioneerGame/Binaries/Win64/PioneerGame.exe"
+  ],
+  "proton": 1808500,
+  "controller": {"cable": "direct"}
+}
