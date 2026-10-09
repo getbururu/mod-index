@@ -123,7 +123,7 @@ func TestRepoData(t *testing.T) {
 		t.Fatalf("games/the-witcher-3.json: %+v", w)
 	}
 	e := r.Entries["elite"]
-	if e == nil || !e.Official || e.Repo != "getbururu/mod-elite" {
+	if e == nil || !e.Official || e.Repo != "getbururu/brr-elite" {
 		t.Fatalf("%+v", e)
 	}
 	ref, err := os.ReadFile(filepath.Join("..", "bururu.ref"))
