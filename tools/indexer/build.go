@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // The index is built from the repo's main branch alone: state/, games/,
@@ -68,7 +69,7 @@ func BuildIndex(r *Repo, prev *Index) (*Built, error) {
 				if !ok {
 					return nil, fmt.Errorf("%s %s was published and is gone: take a version back with a revocation or a status, never by editing state", id, v)
 				}
-				if nv.SHA256 != pv.SHA256 || nv.Size != pv.Size || nv.URL != pv.URL {
+				if nv.SHA256 != pv.SHA256 || nv.Size != pv.Size || !sameLink(pv.URL, nv.URL, pm, ix.Mods[id]) {
 					return nil, fmt.Errorf("%s %s was published with another hash, size or link", id, v)
 				}
 			}
@@ -118,4 +119,18 @@ func ReadSite(v1 string) (*Index, error) {
 		return nil, fmt.Errorf("the published %s: %v", IndexFile, err)
 	}
 	return &ix, nil
+}
+
+// sameLink: a published version's link is the same, or differs only
+// because its repo was renamed: same repo id, and the link with the old
+// repo name swapped for the new one (the hash and size are checked as
+// well, so the file is the same).
+func sameLink(prevURL, newURL string, prev, cur Mod) bool {
+	if prevURL == newURL {
+		return true
+	}
+	if prev.RepoID == 0 || prev.RepoID != cur.RepoID || prev.Repo == "" || cur.Repo == "" || prev.Repo == cur.Repo {
+		return false
+	}
+	return strings.Replace(prevURL, "github.com/"+prev.Repo+"/", "github.com/"+cur.Repo+"/", 1) == newURL
 }

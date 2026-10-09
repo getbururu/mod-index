@@ -354,3 +354,19 @@ func TestEliteEntry(t *testing.T) {
 		}
 	}
 }
+
+// TestSameLink: a published link may change only by a repo rename with
+// the same repo id.
+func TestSameLink(t *testing.T) {
+	old := Mod{Repo: "getbururu/mod-elite", RepoID: 7}
+	renamed := Mod{Repo: "getbururu/brr-elite", RepoID: 7}
+	other := Mod{Repo: "someone/brr-elite", RepoID: 9}
+	a := "https://github.com/getbururu/mod-elite/releases/download/v0.1.0/elite-0.1.0.brr"
+	b := "https://github.com/getbururu/brr-elite/releases/download/v0.1.0/elite-0.1.0.brr"
+	if !sameLink(a, a, old, old) || !sameLink(a, b, old, renamed) {
+		t.Fatal("same link or a rename refused")
+	}
+	if sameLink(a, b, old, other) || sameLink(a, b+"x", old, renamed) || sameLink(a, b, old, old) {
+		t.Fatal("a different repo or file passed")
+	}
+}
