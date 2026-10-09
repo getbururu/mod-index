@@ -43,7 +43,7 @@
         "taste": 0,
         "warnings": 0
       },
-      "commit": "5599b7678d85bc47781b9efa3088e6e3560a4342",
+      "commit": "1dc2a69a34b69cc489aeb7eda4bd00a558b98138",
       "dependencies": {},
       "notes": "The first release.\n\n- R2 clicks like a gun trigger and L2 has a light wall while ARC Raiders is in front; both are free while it is in the background.\n- A calm lightbar colour while the game runs, or off.\n- The haptics stay the game's own.\n- Works on the USB cable only for now. On Bluetooth Bururu leaves the controller to the game.\n- Reads only the controller: no game files, no screen, no keys.\n- A page in Bururu: Effects (Triggers, Lightbar).\n- Needs Bururu with mod API 0.11.",
       "os": [

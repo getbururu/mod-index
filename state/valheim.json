@@ -43,7 +43,7 @@
         "taste": 0,
         "warnings": 0
       },
-      "commit": "5d8cdecfe7740cd7969d700cdedc30941cdbc889",
+      "commit": "9d14f686d292923b6786c0e6a262757d03927b2c",
       "dependencies": {},
       "notes": "The first release.\n\n- Attack feels from the controller: Swing (a soft swell on each attack) or Bow (a click as the draw starts, a tick at full draw, the string's snap on release), and a light thud when you block.\n- R2 follows the attack feel: a light click, or a pull that gets heavier for the bow. L2 resists a little, for the block.\n- From Valheim's log: drums when a raid starts, and a slow swell when the night passes in bed (the swell only when you play alone or host).\n- The lightbar glows a dim fire colour in a world and blinks red as a raid starts.\n- Pages in Bururu: Effects (Haptics, Triggers, Lights) and Settings (Valheim's controls, Valheim's files).\n- Hook points for add-ons: `attack@1` and `state@1`.\n- Needs Bururu with mod API 0.11.",
       "os": [

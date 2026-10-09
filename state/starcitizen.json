@@ -43,7 +43,7 @@
         "taste": 0,
         "warnings": 0
       },
-      "commit": "98d2a9fae58ab0e033795cd54f6632c96ea3755c",
+      "commit": "2f3084df5dcd8637023e069880e58e635053e48a",
       "dependencies": {},
       "notes": "The first release.\n\n- Reads Star Citizen's `Game.log`: the pilot seat, quantum travel, jumps, hangars, injuries, deaths, the law, contracts, blueprints and shops. Lines about other players and other ships play nothing.\n- 31 feels, each with its own level, and choices for the turn, quantum, jump, downed and fire feels.\n- R2 and L2 resist in the pilot seat and on foot with something in your hand, and are free in armistice zones, while downed and in the main menu.\n- The lightbar shows your health or the star system; the player LEDs count the jump drive's steps or your place in a hangar queue; the mic LED lights outside monitored space and pulses on low fuel.\n- Gyro aim pauses in the main menu, and in the pilot seat if you turn it off there.\n- The Home card shows your ship, the star system and your injury.\n- Hook points for add-ons: `turn@1` and `state@1`. A language pack add-on patches `data/notifications.json`.\n- Needs Bururu with mod API 0.11.",
       "os": [
