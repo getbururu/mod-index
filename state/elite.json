@@ -26,7 +26,7 @@
   "note": "",
   "owner_id": 339342163,
   "owner_login": "getbururu",
-  "repo": "getbururu/mod-elite",
+  "repo": "getbururu/brr-elite",
   "repo_id": 1409419241,
   "state": 1,
   "status": "listed",
@@ -83,7 +83,7 @@
       },
       "sha256": "bc133375cbede4602b3a3d3a9e9505abd1dbb53fd6c5662382ba3e471a54f218",
       "size": 159002,
-      "url": "https://github.com/getbururu/mod-elite/releases/download/v0.1.0/elite-0.1.0.brr"
+      "url": "https://github.com/getbururu/brr-elite/releases/download/v0.1.0/elite-0.1.0.brr"
     }
   }
 }

@@ -26,7 +26,7 @@
   "note": "",
   "owner_id": 339342163,
   "owner_login": "getbururu",
-  "repo": "getbururu/mod-arcraiders",
+  "repo": "getbururu/brr-arcraiders",
   "repo_id": 1412083627,
   "state": 1,
   "status": "listed",
@@ -66,7 +66,7 @@
       },
       "sha256": "98dbac179b2d592f88fc3b9c7d2dbecfce8f922f168f6f338463b7771ecbcc2e",
       "size": 8030,
-      "url": "https://github.com/getbururu/mod-arcraiders/releases/download/v0.1.0/arcraiders-0.1.0.brr"
+      "url": "https://github.com/getbururu/brr-arcraiders/releases/download/v0.1.0/arcraiders-0.1.0.brr"
     }
   }
 }
