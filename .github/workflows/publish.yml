@@ -57,7 +57,7 @@ jobs:
       - name: Build
         id: build
         run: |
-          set -eu
+          set -euo pipefail
           mkdir -p site/v1
           go run ./tools/indexer build -site site/v1 -out "$RUNNER_TEMP/index" | tee -a "$GITHUB_STEP_SUMMARY"
           if [ -f "$RUNNER_TEMP/index/index.json" ]; then
@@ -106,7 +106,7 @@ jobs:
           path: ${{ runner.temp }}/index
       - name: Write the index into the pages branch
         run: |
-          set -eu
+          set -euo pipefail
           (cd repo && go build -o "$RUNNER_TEMP/indexer" ./tools/indexer)
           cd site
           if git ls-remote --exit-code --heads origin pages > /dev/null; then
