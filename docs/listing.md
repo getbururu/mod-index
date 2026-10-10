@@ -12,6 +12,8 @@ packed mod, and a pull request here that adds one small file.
 
 - A public GitHub repo you own, with the mod's files at its root
   (`manifest.json` and the rest), as `brr mod new` makes them.
+- Name the repo `bururu-<id>`, with the mod's id, and give it the GitHub
+  topic `bururu-mod`, so players find it.
 - In `manifest.json`:
   - `id`: lower-case letters, digits and `-`, 2 to 40 characters,
     starting with a letter. It never changes once listed.
