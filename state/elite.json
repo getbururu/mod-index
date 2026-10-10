@@ -18,8 +18,8 @@
     "name": "Elite Dangerous",
     "provides": [],
     "readme": {
-      "sha256": "17ae37365e2e7767108f8d21829fe9b458efc9e8c1fc100d0c682d03ed012d71",
-      "size": 8749
+      "sha256": "0b7d37b23165b481ab7601302e1d75b389811d1e3f117b2deaa959ea7e21c84f",
+      "size": 8755
     },
     "summary": "Haptics, adaptive triggers and lights for Elite Dangerous."
   },
@@ -27,7 +27,7 @@
   "owner_id": 339342163,
   "owner_login": "getbururu",
   "repo": "getbururu/bururu-elite",
-  "repo_id": 1409419241,
+  "repo_id": 1413223123,
   "state": 1,
   "status": "listed",
   "versions": {
@@ -84,6 +84,61 @@
       "sha256": "bc133375cbede4602b3a3d3a9e9505abd1dbb53fd6c5662382ba3e471a54f218",
       "size": 159002,
       "url": "https://github.com/getbururu/bururu-elite/releases/download/v0.1.0/elite-0.1.0.brr"
+    },
+    "0.1.1": {
+      "api": "0.10",
+      "changelog": {
+        "sha256": "5ca0cbe911b00ca78c06a7660f343808dc265a09b58f1e304021b31fd68d83e3",
+        "size": 1027
+      },
+      "checks": {
+        "checked_by": "4e6a18c50ca4eb79993278663ea942d5bf8a4db8",
+        "result": "pass",
+        "taste": 0,
+        "warnings": 0
+      },
+      "commit": "9c6de2ef3184628f13b6d48b0e667e293828c2f2",
+      "dependencies": {},
+      "notes": "The same feels and settings as 0.1.0. The licence file now matches the other Bururu mods.",
+      "os": [
+        "windows",
+        "linux"
+      ],
+      "permissions": {
+        "files": {
+          "bindings": {
+            "label": "Bindings",
+            "path": "{LocalAppData}/Frontier Developments/Elite Dangerous/Options/Bindings",
+            "proton": 359320,
+            "setting": "bindings_dir"
+          },
+          "journal": {
+            "label": "Journal",
+            "path": "{SavedGames}/Frontier Developments/Elite Dangerous",
+            "proton": 359320,
+            "setting": "journal_dir"
+          },
+          "options": {
+            "label": "Options",
+            "path": "{LocalAppData}/Frontier Developments/Elite Dangerous/Options",
+            "proton": 359320
+          }
+        },
+        "keyboard": true,
+        "paths": [],
+        "screen": true,
+        "udp": [],
+        "udp_forward": []
+      },
+      "prerelease": false,
+      "published": "2026-10-10T13:31:35Z",
+      "review": {
+        "by": "maintainer",
+        "diff": "same"
+      },
+      "sha256": "6312d5a9ddf87fba7af6734889ad685914e6c185bf8c5aaf657a77304e22aabc",
+      "size": 159052,
+      "url": "https://github.com/getbururu/bururu-elite/releases/download/v0.1.1/elite-0.1.1.brr"
     }
   }
 }

@@ -1,3 +1,16 @@
 {
-  "revoked": []
+  "revoked": [
+    {
+      "id": "elite",
+      "versions": [
+        "0.1.0"
+      ],
+      "sha256": [
+        "bc133375cbede4602b3a3d3a9e9505abd1dbb53fd6c5662382ba3e471a54f218"
+      ],
+      "level": "warn",
+      "reason": "Replaced by 0.1.1, with the same feels. Update the mod.",
+      "date": "2026-10-10"
+    }
+  ]
 }
