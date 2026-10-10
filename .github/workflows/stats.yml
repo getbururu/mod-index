@@ -3,6 +3,8 @@ name: stats
 # Daily: GitHub's download counts of the listed packs and the stars of
 # their repos, written into the pages branch as stats.json beside the
 # index, and the whole site deployed from it.
+# On a repo that was just made, run it once by hand: publish deploys only
+# when the index changes, so this is what puts the site up again.
 
 on:
   schedule:
