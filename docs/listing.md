@@ -61,7 +61,7 @@ Fork this repo, add `entries/<id>.json`, and open a pull request:
 {
   "entry": 1,
   "id": "gravel-rally",
-  "repo": "your-login/gravel-rally",
+  "repo": "your-login/bururu-gravel-rally",
   "official": false,
   "prerelease": false
 }
