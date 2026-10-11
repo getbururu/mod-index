@@ -11,9 +11,9 @@ import (
 )
 
 // The indexer cannot import Bururu's packages, so it runs the `bururu`
-// command line, built from the ref in tools/bururu.ref, and reads its
-// JSON: `mod check --json` and `mod listing --json`. Both only read the
-// pack.
+// command line of the published build tools/bururu.json pins (or a
+// program given with -bururu) and reads its JSON: `mod check --json` and
+// `mod listing --json`. Both only read the pack.
 
 // CheckResult is `bururu mod check --json` (format 1).
 type CheckResult struct {

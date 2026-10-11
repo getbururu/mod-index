@@ -32,7 +32,7 @@ only when you click Install.
 | `policy/` | names nobody else may take, versions taken back, Bururu versions with a known flaw, the oldest Bururu the list asks for |
 | `files/icons/`, `files/text/` | the icons, READMEs and CHANGELOGs the list points at, named by their SHA-256 |
 | `tools/indexer/` | the Go program the workflows run |
-| `tools/bururu.ref` | the branch, tag or commit of Bururu whose `mod check` and `mod listing` the poll runs |
+| `tools/bururu.json` | the published Bururu build whose `mod check` and `mod listing` the poll runs, see [The Bururu the poll runs](#the-bururu-the-poll-runs) |
 
 ## How it runs
 
@@ -40,13 +40,74 @@ only when you click Install.
 |---|---|---|
 | `check-entry` | every pull request | reads every data file, runs the tests, and looks at the repo and newest release of each new or changed entry |
 | `check-report` | after `check-entry` | posts the report on the pull request |
-| `poll` | every 6 hours, and when an entry changes | checks each new release with Bururu and opens one pull request per version; a maintainer's merge is the review |
+| `poll` | every 6 hours, and when an entry or `tools/bururu.json` changes | checks each new release with the pinned Bururu build and opens one pull request per version; a maintainer's merge is the review |
 | `publish` | when `state/`, `games/`, `policy/` or the indexer change | builds `index.json` and puts it on the site |
 | `stats` | daily | download counts and GitHub stars, as `stats.json` beside the list |
 
-Bururu's repo is private, so `poll` reads it with the `BURURU_READ`
-secret, a read-only token for `getbururu/bururu`. Without it, nothing is
-polled.
+No workflow here uses a secret or reads Bururu's code, which is closed
+source. `poll` downloads a published Bururu build instead, the one
+`tools/bururu.json` pins. Until a build is pinned, the poll says so and
+polls nothing, and maintainers poll by hand.
+
+## The Bururu the poll runs
+
+`tools/bururu.json` pins one published Bururu build for Linux:
+
+```json
+{
+  "bururu": 1,
+  "version": "1.0.0",
+  "url": "https://<host>/<path of the 1.0.0 release>/Bururu-x86_64.AppImage",
+  "sha256": "<the SHA-256 of that file>",
+  "path": "usr/bin/bururu"
+}
+```
+
+| Field | What |
+|---|---|
+| `bururu` | always 1 |
+| `version` | Bururu's version in that build; the checks of each version name it |
+| `url` | the `https` address of the build: an `.AppImage` (Bururu's Linux release is `Bururu-x86_64.AppImage`) or a `.tar.gz` |
+| `sha256` | the SHA-256 of that file, as the release's `SHA256SUMS.txt` lists it |
+| `path` | the `bururu` program inside the build: `usr/bin/bururu` in the AppImage |
+
+With every field but `bururu` empty, no build is pinned. That is the case
+until Bururu has a public release.
+
+The indexer downloads the file, refuses it unless its SHA-256 is the
+pinned one, takes the program out of it, and runs `bururu -version`,
+which must print the pinned version. It unpacks an AppImage by running
+it with `--appimage-extract`, which needs no FUSE on GitHub's runner,
+and reads a `.tar.gz` itself. In the AppImage, `usr/bin/bururu` is
+Bururu's core (`AppRun` points at it). The core is a static program,
+and its `mod check` and `mod listing` need no display and no GTK. A
+plain tarball of the core would work as well, if Bururu ever ships one.
+
+To pin a Bururu version, write its version, the address of the file in
+that version's own release (not a link to the latest release, whose file
+changes) and the file's SHA-256 from that release's `SHA256SUMS.txt`
+into `tools/bururu.json`, and open a pull request. `check-entry` reads
+the file, and after the merge the poll runs with the new build.
+
+## Polling by hand
+
+Until a build is pinned, or to try a test build of Bururu, a maintainer
+runs the poll with a Bururu program of their own and gives the commit it
+was built from with `-ref` (the checks of each version record it):
+
+```
+go run ./tools/indexer poll -bururu <test build folder>\brr.exe -ref <commit> -out out -only <id>
+go run ./tools/indexer plan -in out
+go run ./tools/indexer apply -in out -key <key> -body out\body.md
+```
+
+`plan` prints one line per change: its key, the mod's id, the bot's
+branch name and the title. `apply` writes that change into `state/` and
+`files/`, and the pull request's text into `out\body.md`. Commit
+`state/` and `files/` on a new branch and open a pull request with that
+title and text; merging it is the review, as with the bot's pull
+requests. With `GITHUB_TOKEN` set, for example to what `gh auth token`
+prints, GitHub allows the poll more requests.
 
 ## Game profiles
 

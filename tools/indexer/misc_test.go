@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -130,12 +129,9 @@ func TestRepoData(t *testing.T) {
 	if e == nil || !e.Official || e.Repo != "getbururu/bururu-elite" {
 		t.Fatalf("%+v", e)
 	}
-	ref, err := os.ReadFile(filepath.Join("..", "bururu.ref"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if s := strings.TrimSpace(string(ref)); !regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$`).MatchString(s) {
-		t.Fatalf("tools/bururu.ref holds %q: a branch, a tag or a commit of Bururu's repo", s)
+	// tools/bururu.json reads: empty, or a build the poll can fetch
+	if p := r.Bururu; p.Bururu != BururuPinFormat || checkPin(p) != nil {
+		t.Fatalf("%s: %+v", BururuPinFile, p)
 	}
 }
 

@@ -17,7 +17,8 @@ import (
 )
 
 // The repo's own files: what authors and maintainers write (entries,
-// games, policy) and what the bot's pull requests write (state, files).
+// games, policy, tools/bururu.json) and what the bot's pull requests
+// write (state, files).
 // The indexer reads all of them strictly; `indexer validate` runs on
 // every pull request.
 
@@ -166,6 +167,7 @@ type Repo struct {
 	Revoked    []Revocation
 	Advisories []Advisory
 	Client     ClientFile
+	Bururu     BururuPin // tools/bururu.json
 }
 
 var (
@@ -259,6 +261,11 @@ func LoadRepo(root string) (*Repo, []string) {
 	policy("advisories.json", &ad)
 	r.Advisories = ad.Advisories
 	policy("client.json", &r.Client)
+	if p, err := readPin(root); err != nil {
+		add("%v", err)
+	} else {
+		r.Bururu = p
+	}
 	probs = append(probs, r.checkPolicy()...)
 	probs = append(probs, r.checkFiles()...)
 	for _, id := range sortedKeys(r.States) {

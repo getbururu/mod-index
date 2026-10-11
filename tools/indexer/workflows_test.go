@@ -97,6 +97,8 @@ jobs:
 		"self-hosted":            {"ubuntu-latest", "self-hosted"},
 		"secret":                 {"echo hi", "echo $X\n        env:\n          X: ${{ secrets.MY_PAT }}"},
 		"write permissions on a": {"  workflow_dispatch:\n", "  pull_request:\n"},
+		"checks out getbururu/bururu": {"          persist-credentials: false\n",
+			"          persist-credentials: false\n          repository: getbururu/bururu\n"},
 	}
 	for want, c := range cases {
 		bad := strings.Replace(good, c.from, c.to, 1)
@@ -110,6 +112,13 @@ jobs:
 		if !slices.ContainsFunc(p, func(s string) bool { return strings.Contains(s, want) }) {
 			t.Errorf("%s: not caught, got %v", want, p)
 		}
+	}
+	// the poll's fetch job reads no secret either: it runs a published
+	// Bururu build, so it needs no token for Bururu's repo
+	bad := strings.Replace(strings.Replace(good, "  a:\n", "  fetch:\n", 1), "echo hi",
+		"echo $X\n        env:\n          X: ${{ secrets.BURURU_READ }}", 1)
+	if p := workflowProblems("poll.yml", bad); !slices.ContainsFunc(p, func(s string) bool { return strings.Contains(s, "reads the secret BURURU_READ") }) {
+		t.Errorf("BURURU_READ in poll.yml's fetch job: not caught, got %v", p)
 	}
 }
 
@@ -204,9 +213,7 @@ func workflowProblems(name, src string) []string {
 		all := strings.Join(strings_(job), "\n")
 		secrets := secretsRE.FindAllStringSubmatch(all, -1)
 		for _, s := range secrets {
-			if s[1] != "BURURU_READ" || name != "poll.yml" || jn != "fetch" {
-				add("%s reads the secret %s; only BURURU_READ in poll.yml's fetch job, to read Bururu's repo (GITHUB_TOKEN is github.token)", where, s[1])
-			}
+			add("%s reads the secret %s; no workflow here reads a secret (GITHUB_TOKEN is github.token)", where, s[1])
 		}
 		if untrusted && (writes || len(secrets) > 0 || env != "") {
 			add("%s has write permissions on a pull_request workflow, a secret or an environment: pull request content runs here", where)
@@ -244,8 +251,8 @@ func workflowProblems(name, src string) []string {
 					if str(with["persist-credentials"]) != "false" && !contentsWrite {
 						add("%s: actions/checkout without persist-credentials: false in a job that pushes nothing", sw)
 					}
-					if repo := str(with["repository"]); repo != "" && (repo != "getbururu/bururu" || name != "poll.yml" || jn != "fetch") {
-						add("%s checks out %s", sw, repo)
+					if repo := str(with["repository"]); repo != "" {
+						add("%s checks out %s; the workflows check out this repo only", sw, repo)
 					}
 					if untrusted && str(with["persist-credentials"]) != "false" {
 						add("%s keeps credentials in a pull_request job: persist-credentials", sw)

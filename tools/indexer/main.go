@@ -10,8 +10,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -22,8 +24,9 @@ const usage = `indexer: Bururu's mod list (getbururu/mod-index)
       read every data file strictly; exit 1 on any problem
   indexer check-pr -base <dir> -pr <dir> [-bururu <program> -ref <ref>] -out <dir> [-author <login>] [-association <a>]
       the checks of a pull request: writes <out>/report.txt and result.json
-  indexer poll [-root .] -bururu <program> -ref <ref> -out <dir> [-cache <dir>] [-only <id>]
-      find new versions and write the proposed changes into <out> (read-only job)
+  indexer poll [-root .] [-bururu <program> -ref <ref>] -out <dir> [-cache <dir>] [-only <id>]
+      find new versions and write the proposed changes into <out> (read-only job);
+      without -bururu it runs the Bururu build tools/bururu.json pins (on Linux)
   indexer plan -in <dir> [-root .]
       read the poll's result strictly and print: key, id, branch, title
   indexer apply -in <dir> -key <key> [-root .] -body <file>
@@ -106,24 +109,41 @@ func run(ctx context.Context, cmd string, args []string) error {
 		return nil
 
 	case "poll":
-		bururu := fs.String("bururu", "", "the bururu program")
-		ref := fs.String("ref", "", "the Bururu ref it was built from")
+		bururu := fs.String("bururu", "", "a bururu program to run in place of the pinned build")
+		ref := fs.String("ref", "", "the Bururu ref that program was built from")
 		out := fs.String("out", "", "where the changes go")
 		cache := fs.String("cache", "", "a folder for GitHub's ETags")
 		only := fs.String("only", "", "poll this entry only")
 		if err := parse(); err != nil {
 			return err
 		}
-		if *bururu == "" {
-			return errors.New("poll needs -bururu: the program whose mod check and mod listing judge each pack")
+		r, probs := LoadRepo(*root)
+		if len(probs) > 0 {
+			return fmt.Errorf("the repo has problems:\n%s", strings.Join(probs, "\n"))
+		}
+		if *bururu == "" && !r.Bururu.Pinned() {
+			fmt.Printf("No published Bururu is pinned in %s yet, so there is no Bururu to check packs with: nothing polled.\n", BururuPinFile)
+			fmt.Println("Until one is, maintainers poll by hand with a test build of Bururu (README.md, Polling by hand).")
+			return WriteChanges(*out, nil, nil)
 		}
 		p, err := poller(*root, *bururu, *ref, *cache)
 		if err != nil {
 			return err
 		}
-		r, probs := LoadRepo(*root)
-		if len(probs) > 0 {
-			return fmt.Errorf("the repo has problems:\n%s", strings.Join(probs, "\n"))
+		if *bururu == "" {
+			if runtime.GOOS != "linux" {
+				return fmt.Errorf("the pinned Bururu is a Linux build; on %s, poll with -bururu <program> -ref <ref>", runtime.GOOS)
+			}
+			prog, err := FetchBururu(ctx, &http.Client{}, r.Bururu, filepath.Join(p.Work, "bururu"), MaxBuildBytes)
+			if err != nil {
+				return err
+			}
+			if err := CheckBururuVersion(ctx, prog, r.Bururu.Version); err != nil {
+				return err
+			}
+			fmt.Printf("Bururu %s from %s, SHA-256 %s as pinned\n", r.Bururu.Version, r.Bururu.URL, r.Bururu.SHA256)
+			p.Run = ExecRunner{Path: prog}
+			p.Ref = r.Bururu.Version
 		}
 		p.Repo = r
 		var changes []*Change

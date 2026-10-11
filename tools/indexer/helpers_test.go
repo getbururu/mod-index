@@ -217,13 +217,13 @@ func basicListing(r *fakeRunner, id, version string) *Listing {
 		GameRecords: map[string]GameRecord{}, Problems: []string{}, Reserved: []string{}, Warnings: []string{}}
 }
 
-// testRepo writes a repo with the real policy and games files and the
-// entries given, and loads it.
+// testRepo writes a repo with the real policy, games and Bururu pin
+// files and the entries given, and loads it.
 func testRepo(t *testing.T, entries ...*Entry) string {
 	t.Helper()
 	root := t.TempDir()
 	for _, f := range []string{"policy/reserved.json", "policy/revoked.json", "policy/advisories.json", "policy/client.json",
-		"games/elite-dangerous.json"} {
+		"games/elite-dangerous.json", BururuPinFile} {
 		b, err := os.ReadFile(filepath.Join("..", "..", filepath.FromSlash(f)))
 		if err != nil {
 			t.Fatal(err)
