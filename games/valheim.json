@@ -13,10 +13,12 @@
   },
   "exe": {
     "windows": {"game": ["valheim.exe"]},
-    "linux": {"game": ["valheim.x86_64", "valheim.exe"], "match": "cmdline"}
+    "linux": {"game": ["valheim.x86_64", "valheim.exe"], "match": "cmdline"},
+    "macos": {"game": ["Valheim"]}
   },
   "markers": [
     "valheim.exe",
-    "valheim.x86_64"
+    "valheim.x86_64",
+    "valheim.app/Contents/MacOS/Valheim"
   ]
 }

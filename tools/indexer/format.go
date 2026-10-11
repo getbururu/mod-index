@@ -79,6 +79,7 @@ const (
 
 	OSWindows = "windows"
 	OSLinux   = "linux"
+	OSMacOS   = "macos"
 
 	DepRequired     = "required"
 	DepOptional     = "optional"
@@ -89,6 +90,12 @@ const (
 	// ReviewBy is who reviews a version: a role, never a name
 	ReviewBy = "maintainer"
 )
+
+// Systems are the operating systems the list names.
+var Systems = []string{OSWindows, OSLinux, OSMacOS}
+
+// knownOS reports one of Systems.
+func knownOS(os string) bool { return slices.Contains(Systems, os) }
 
 // Index is index.json.
 type Index struct {
@@ -172,6 +179,7 @@ type PathDecl struct {
 	Proton  int    `json:"proton,omitempty"`
 	Windows string `json:"windows,omitempty"`
 	Linux   string `json:"linux,omitempty"`
+	MacOS   string `json:"macos,omitempty"`
 	Setting string `json:"setting,omitempty"`
 	Label   string `json:"label,omitempty"`
 }
@@ -183,6 +191,8 @@ func (p PathDecl) Template(goos string) string {
 		return p.Windows
 	case goos == OSLinux && p.Linux != "":
 		return p.Linux
+	case goos == OSMacOS && p.MacOS != "":
+		return p.MacOS
 	}
 	return p.Path
 }

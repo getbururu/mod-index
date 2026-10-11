@@ -18,29 +18,35 @@ import (
 // dependencies and files changed against the previous accepted version,
 // and the Lua that changed.
 
-// PermDiff compares the permission items on Windows and Linux.
+// PermDiff compares the permission items on Windows, Linux and macOS.
 type PermDiff struct {
 	Diff    string   // DiffFirst, DiffSame, DiffNarrower or DiffWider
-	Added   []string // items new in this version ("linux: files:x=..." when only on one OS)
+	Added   []string // items new in this version ("linux: files:x=..." when not on every OS)
 	Removed []string
 	Why     []string // what else made it wider: a new required dependency, a changed kind
 }
 
-// permItems are p's items on both systems; an item on one only is
-// prefixed with that system's name.
+// permItems are p's items on every system; an item on some of them only
+// is prefixed with their names ("windows, macos: ").
 func permItems(p Permissions) []string {
-	w, l := p.Items(OSWindows), p.Items(OSLinux)
-	var out []string
-	for _, it := range w {
-		if slices.Contains(l, it) {
-			out = append(out, it)
-		} else {
-			out = append(out, OSWindows+": "+it)
+	on := map[string][]string{}
+	var order []string
+	for _, os := range Systems {
+		for _, it := range p.Items(os) {
+			if on[it] == nil {
+				order = append(order, it)
+			}
+			if !slices.Contains(on[it], os) {
+				on[it] = append(on[it], os)
+			}
 		}
 	}
-	for _, it := range l {
-		if !slices.Contains(w, it) {
-			out = append(out, OSLinux+": "+it)
+	var out []string
+	for _, it := range order {
+		if len(on[it]) == len(Systems) {
+			out = append(out, it)
+		} else {
+			out = append(out, strings.Join(on[it], ", ")+": "+it)
 		}
 	}
 	return out

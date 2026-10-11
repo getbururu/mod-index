@@ -181,6 +181,36 @@ func TestGameController(t *testing.T) {
 	}
 }
 
+// TestMacOS: a game record names its macOS program, another system
+// refuses the file, and a path's macOS form is its own item in a review.
+func TestMacOS(t *testing.T) {
+	base, err := os.ReadFile(filepath.Join("..", "..", "games", "valheim.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	root := testRepo(t)
+	if err := writeFile(filepath.Join(root, "games", "valheim.json"), base); err != nil {
+		t.Fatal(err)
+	}
+	g := load(t, root).Games["valheim"]
+	if !slices.Equal(g.Exe[OSMacOS].Game, []string{"Valheim"}) || !slices.Contains(g.Markers, "valheim.app/Contents/MacOS/Valheim") {
+		t.Fatalf("games/valheim.json: %+v", g)
+	}
+	other := strings.Replace(string(base), `"macos": {`, `"freebsd": {`, 1)
+	if err := writeFile(filepath.Join(root, "games", "valheim.json"), []byte(other)); err != nil {
+		t.Fatal(err)
+	}
+	if _, probs := LoadRepo(root); !strings.Contains(strings.Join(probs, "\n"), `exe names the OS "freebsd"`) {
+		t.Fatalf("problems %q", probs)
+	}
+
+	p := Permissions{Files: map[string]PathDecl{"logs": {Path: "{Home}/AppData/LocalLow/Rally", MacOS: "{Home}/Library/Logs/Rally"}}, Screen: true}
+	want := []string{"windows, linux: files:logs={Home}/AppData/LocalLow/Rally", "screen", "macos: files:logs={Home}/Library/Logs/Rally"}
+	if got := permItems(p); !slices.Equal(got, want) {
+		t.Fatalf("items %q, want %q", got, want)
+	}
+}
+
 // TestReadPack: one top folder is taken off, Lua kept, bad paths refused.
 func TestReadPack(t *testing.T) {
 	files, err := readPack(makePack(t, map[string]string{"mod/manifest.json": "{}", "mod/lua/a.lua": "x"}))

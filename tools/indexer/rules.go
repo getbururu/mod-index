@@ -241,7 +241,7 @@ func checkGame(c *checker, id string, g GameRecord) {
 	}
 	for _, os := range sortedKeys(g.Exe) {
 		e := g.Exe[os]
-		if os != OSWindows && os != OSLinux {
+		if !knownOS(os) {
 			c.fail("%s.exe names the OS %q", where, os)
 		}
 		for _, x := range slices.Concat(e.Game, e.Launcher) {
@@ -365,7 +365,7 @@ func checkVersion(c *checker, id, ver, repo string, v Version) {
 		c.fail("%s api %q", where, v.API)
 	}
 	for i, os := range v.OS {
-		if (os != OSWindows && os != OSLinux) || slices.Contains(v.OS[:i], os) {
+		if !knownOS(os) || slices.Contains(v.OS[:i], os) {
 			c.fail("%s os %q", where, os)
 		}
 	}
@@ -393,7 +393,7 @@ func checkPermissions(c *checker, where string, p Permissions) {
 	for _, name := range sortedKeys(p.Files) {
 		d := p.Files[name]
 		c.match(where+".files", declRE, name)
-		for _, s := range []string{d.Path, d.Windows, d.Linux} {
+		for _, s := range []string{d.Path, d.Windows, d.Linux, d.MacOS} {
 			c.text(where+".files."+name, s, 1024, true)
 		}
 		if d.Path == "" {
