@@ -18,8 +18,8 @@
     "name": "Valheim",
     "provides": [],
     "readme": {
-      "sha256": "0fb1f58383c78455342672720b9564c8ae451e0fe2a54f56b1a0c573098a1375",
-      "size": 6461
+      "sha256": "a2e0c5f44021eec853c9aef3676c51ebd2bf45744a2e55e2d01119328a6cdc1b",
+      "size": 6679
     },
     "summary": "Haptics, adaptive triggers and lights for Valheim."
   },
@@ -74,6 +74,52 @@
       "sha256": "db3cd3238422b04f97d43630e33134e5aa924e4fc646017fe50fb8454c29542f",
       "size": 21156,
       "url": "https://github.com/getbururu/bururu-valheim/releases/download/v0.1.0/valheim-0.1.0.brr"
+    },
+    "0.2.0": {
+      "api": "0.12",
+      "changelog": {
+        "sha256": "20a52f068f34d6fdf7697561e3d98d989ba95cbc24a45ecce28deea5ff940e75",
+        "size": 1215
+      },
+      "checks": {
+        "checked_by": "91eeb183f585c982ee1ca47e386711e24c9558c2",
+        "result": "pass",
+        "taste": 0,
+        "warnings": 0
+      },
+      "commit": "2a63f692b962f5d9d52453cf37e4a3348458829f",
+      "dependencies": {},
+      "notes": "The same feels and settings as 0.1.0, now also on macOS.\n\n- Runs with Valheim's Mac version from Steam and reads its log in `~/Library/Logs/IronGate/Valheim`. On a Mac the controller's haptics come over Bluetooth.\n- Recordings leave out your Mac user folder (`/Users/<name>`), as they do on Windows and Linux.\n- Needs Bururu with mod API 0.12.",
+      "os": [
+        "windows",
+        "linux",
+        "macos"
+      ],
+      "permissions": {
+        "files": {
+          "logs": {
+            "label": "Valheim's log",
+            "linux": "{RoamingAppData}/unity3d/IronGate/Valheim",
+            "macos": "{Home}/Library/Logs/IronGate/Valheim",
+            "path": "{Home}/AppData/LocalLow/IronGate/Valheim",
+            "setting": "log_dir"
+          }
+        },
+        "keyboard": false,
+        "paths": [],
+        "screen": false,
+        "udp": [],
+        "udp_forward": []
+      },
+      "prerelease": false,
+      "published": "2026-10-11T17:25:25Z",
+      "review": {
+        "by": "maintainer",
+        "diff": "wider"
+      },
+      "sha256": "0ebf4dad4a13f7faea89018543ba3704fa84f9f8abead1cb1088abcac1b16a6c",
+      "size": 21504,
+      "url": "https://github.com/getbururu/bururu-valheim/releases/download/v0.2.0/valheim-0.2.0.brr"
     }
   }
 }
