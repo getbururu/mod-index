@@ -10,7 +10,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -26,7 +25,7 @@ const usage = `indexer: Bururu's mod list (getbururu/mod-index)
       the checks of a pull request: writes <out>/report.txt and result.json
   indexer poll [-root .] [-bururu <program> -ref <ref>] -out <dir> [-cache <dir>] [-only <id>]
       find new versions and write the proposed changes into <out> (read-only job);
-      without -bururu it runs the Bururu build tools/bururu.json pins (on Linux)
+      without -bururu it runs the Bururu build tools/bururu.json pins (on Linux x86_64)
   indexer plan -in <dir> [-root .]
       read the poll's result strictly and print: key, id, branch, title
   indexer apply -in <dir> -key <key> [-root .] -body <file>
@@ -121,20 +120,22 @@ func run(ctx context.Context, cmd string, args []string) error {
 		if len(probs) > 0 {
 			return fmt.Errorf("the repo has problems:\n%s", strings.Join(probs, "\n"))
 		}
-		if *bururu == "" && !r.Bururu.Pinned() {
-			fmt.Printf("No published Bururu is pinned in %s yet, so there is no Bururu to check packs with: nothing polled.\n", BururuPinFile)
-			fmt.Println("Until one is, maintainers poll by hand with a test build of Bururu (README.md, Polling by hand).")
-			return WriteChanges(*out, nil, nil)
+		if *bururu == "" {
+			if !r.Bururu.Pinned() {
+				fmt.Printf("No published Bururu is pinned in %s yet, so there is no Bururu to check packs with: nothing polled.\n", BururuPinFile)
+				fmt.Println("Until one is, maintainers poll by hand with a test build of Bururu (README.md, Polling by hand).")
+				return WriteChanges(*out, nil, nil)
+			}
+			if err := buildRunsOn(runtime.GOOS, runtime.GOARCH); err != nil {
+				return err
+			}
 		}
 		p, err := poller(*root, *bururu, *ref, *cache)
 		if err != nil {
 			return err
 		}
 		if *bururu == "" {
-			if runtime.GOOS != "linux" {
-				return fmt.Errorf("the pinned Bururu is a Linux build; on %s, poll with -bururu <program> -ref <ref>", runtime.GOOS)
-			}
-			prog, err := FetchBururu(ctx, &http.Client{}, r.Bururu, filepath.Join(p.Work, "bururu"), MaxBuildBytes)
+			prog, err := FetchBururu(ctx, p.buildClient(), r.Bururu, filepath.Join(p.Work, "bururu"), MaxBuildBytes)
 			if err != nil {
 				return err
 			}

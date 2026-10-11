@@ -7,6 +7,9 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -32,7 +35,7 @@ func TestBururuPin(t *testing.T) {
 		name, from, to, want string
 		pinned               bool
 	}{
-		{name: "as written"},
+		{name: "nothing pinned"},
 		{name: "an AppImage", to: pinned, pinned: true},
 		{name: "a tarball", to: strings.Replace(strings.Replace(pinned, "Bururu-x86_64.AppImage", "bururu-1.0.0-linux-amd64.tar.gz", 1),
 			"usr/bin/bururu", "bururu/bururu", 1), pinned: true},
@@ -207,6 +210,7 @@ func TestFetchBururuTarball(t *testing.T) {
 // core answers -version as Bururu's does.
 const fakeAppImage = `#!/bin/sh
 [ "$#" -eq 1 ] && [ "$1" = --appimage-extract ] || { echo "want --appimage-extract, got $*" >&2; exit 2; }
+[ -z "${GITHUB_TOKEN:-}" ] || { echo "GITHUB_TOKEN reached the AppImage" >&2; exit 3; }
 mkdir -p squashfs-root/usr/bin
 printf '#!/bin/sh\n[ "$1" = -version ] && echo "Bururu 1.0.0"\n' > squashfs-root/usr/bin/bururu
 chmod 755 squashfs-root/usr/bin/bururu
@@ -222,6 +226,7 @@ func TestFetchBururuAppImage(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("the AppImage stand-in is a shell script")
 	}
+	t.Setenv("GITHUB_TOKEN", "a token Bururu never sees")
 	good := []byte(fakeAppImage)
 	failing := []byte("#!/bin/sh\necho 'cannot read the squashfs' >&2\nexit 1\n")
 	srv := buildServer(t, map[string][]byte{"/v1.0.0/Bururu-x86_64.AppImage": good, "/failing/Bururu-x86_64.AppImage": failing})
@@ -293,5 +298,166 @@ func TestPollWithoutPin(t *testing.T) {
 	}
 	if b, err := os.ReadFile(filepath.Join(out, "skipped.txt")); err != nil || len(b) != 0 {
 		t.Fatalf("skipped.txt: %q, %v", b, err)
+	}
+}
+
+// TestPinnedBuildPlatform: the pinned build runs on Linux x86_64 only;
+// elsewhere the poll says to use -bururu before it downloads anything or
+// makes a scratch folder.
+func TestPinnedBuildPlatform(t *testing.T) {
+	if err := buildRunsOn("linux", "amd64"); err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range [][2]string{{"linux", "arm64"}, {"windows", "amd64"}, {"darwin", "arm64"}} {
+		want := "the pinned Bururu is a Linux x86_64 build; on " + p[0] + "/" + p[1] + ", poll with -bururu <program> -ref <ref>"
+		if err := buildRunsOn(p[0], p[1]); err == nil || err.Error() != want {
+			t.Errorf("%s/%s: %v", p[0], p[1], err)
+		}
+	}
+	if buildRunsOn(runtime.GOOS, runtime.GOARCH) == nil {
+		return // here the poll would download the pinned build
+	}
+	root := testRepo(t, rallyEntry())
+	writePin(t, root, BururuPin{Bururu: BururuPinFormat, Version: "1.0.0", URL: "https://127.0.0.1:1/Bururu-x86_64.AppImage",
+		SHA256: strings.Repeat("ab", 32), Path: "usr/bin/bururu"})
+	out := filepath.Join(t.TempDir(), "out")
+	tmp := t.TempDir()
+	for _, v := range []string{"TMPDIR", "TMP", "TEMP"} {
+		t.Setenv(v, tmp)
+	}
+	err := run(context.Background(), "poll", []string{"-root", root, "-out", out})
+	if err == nil || !strings.Contains(err.Error(), "the pinned Bururu is a Linux x86_64 build; on "+runtime.GOOS+"/"+runtime.GOARCH) {
+		t.Fatalf("%v", err)
+	}
+	if ents, _ := os.ReadDir(tmp); len(ents) != 0 {
+		t.Fatalf("the poll left %s in the temp folder", ents[0].Name())
+	}
+}
+
+// noDownloads is a client that fails the test on any request.
+func noDownloads(t *testing.T) *http.Client {
+	return &http.Client{Transport: roundTrip(func(r *http.Request) (*http.Response, error) {
+		t.Errorf("downloaded %s", r.URL)
+		return nil, errors.New("no downloads here")
+	})}
+}
+
+type roundTrip func(*http.Request) (*http.Response, error)
+
+func (f roundTrip) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
+
+// TestCheckPullRequestPin: a pull request that changes tools/bururu.json
+// shows the pin before and after; only a maintainer may change it, and a
+// maintainer's new pin is downloaded and its SHA-256 checked, never run.
+func TestCheckPullRequestPin(t *testing.T) {
+	build := []byte("a Bururu build that is never run\n")
+	srv := buildServer(t, map[string][]byte{"/v1.0.0/Bururu-x86_64.AppImage": build})
+	none := BururuPin{Bururu: BururuPinFormat}
+	good := pinOf(srv, "/v1.0.0/Bururu-x86_64.AppImage", build, "usr/bin/bururu")
+	wrong := good
+	wrong.SHA256 = strings.Repeat("0", 64)
+	gone := pinOf(srv, "/v9.9.9/Bururu-x86_64.AppImage", build, "usr/bin/bururu")
+	gh := newFakeGitHub(t)
+	check := func(before, after BururuPin, assoc string, hc *http.Client) *EntryCheck {
+		base, pr := testRepo(t), testRepo(t)
+		writePin(t, base, before)
+		writePin(t, pr, after)
+		p := &Poller{GH: gh.client(""), Ref: "test", Work: t.TempDir(), Now: t0, BuildHTTP: hc}
+		return CheckPullRequest(context.Background(), p, base, pr, "someone", assoc)
+	}
+	after := "  after: Bururu 1.0.0 from " + good.URL + ", SHA-256 " + good.SHA256 + ", program usr/bin/bururu\n"
+	for _, tc := range []struct {
+		name          string
+		before, after BururuPin
+		assoc         string
+		hc            *http.Client
+		pass          bool
+		want          []string
+	}{
+		{"by an outsider", none, good, "NONE", noDownloads(t), false,
+			[]string{"Bururu pin (tools/bururu.json):\n  before: no build pinned\n" + after, "FAIL only the list's maintainers change tools/bururu.json"}},
+		{"by a contributor", good, wrong, "CONTRIBUTOR", noDownloads(t), false, []string{"FAIL only the list's maintainers change"}},
+		{"by a maintainer", none, good, "OWNER", srv.Client(), true,
+			[]string{after + "  the file at that address has the pinned SHA-256; the poll unpacks and runs it after the merge"}},
+		{"a wrong hash", none, wrong, "MEMBER", srv.Client(), false,
+			[]string{"FAIL the pinned build: download " + good.URL + ": its SHA-256 is " + good.SHA256 + "; the pin says 0000"}},
+		{"not there", good, gone, "COLLABORATOR", srv.Client(), false, []string{"FAIL the pinned build: download " + gone.URL + ": 404 Not Found"}},
+		{"unpinned", good, none, "OWNER", noDownloads(t), true, []string{"  after: no build pinned\n"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			res := check(tc.before, tc.after, tc.assoc, tc.hc)
+			if res.Pass != tc.pass {
+				t.Fatalf("pass %v:\n%s", res.Pass, res.Report)
+			}
+			for _, w := range tc.want {
+				if !strings.Contains(res.Report, w) {
+					t.Fatalf("no %q in:\n%s", w, res.Report)
+				}
+			}
+		})
+	}
+	// the same pin on both sides is no change
+	if res := check(good, good, "NONE", noDownloads(t)); !res.Pass || strings.Contains(res.Report, "Bururu pin") {
+		t.Fatalf("%s", res.Report)
+	}
+}
+
+// The test binary stands in for the bururu program when
+// INDEXER_FAKE_BURURU is 1: -version says whether a token reached it,
+// and mod check lists the environment it got as its taste notes.
+func init() {
+	if os.Getenv("INDEXER_FAKE_BURURU") != "1" {
+		return
+	}
+	if len(os.Args) > 1 && os.Args[1] == "-version" {
+		if os.Getenv("GITHUB_TOKEN") != "" {
+			fmt.Println("Bururu, with GITHUB_TOKEN")
+		} else {
+			fmt.Println("Bururu 1.0.0")
+		}
+		os.Exit(0)
+	}
+	json.NewEncoder(os.Stdout).Encode(CheckResult{Check: CheckJSONFormat, Result: CheckPass, CheckedBy: "env", TasteNotes: os.Environ()})
+	os.Exit(0)
+}
+
+// TestBururuGetsNoToken: the bururu program runs without the variables
+// that may hold a secret, and with the rest.
+func TestBururuGetsNoToken(t *testing.T) {
+	prog, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("INDEXER_FAKE_BURURU", "1")
+	hidden := []string{"GITHUB_TOKEN", "GH_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN", "DEPLOY_SECRET", "SMTP_PASSWORD",
+		"AWS_SECRET_ACCESS_KEY", "OPENAI_API_KEY", "GITHUB_PAT"}
+	for _, v := range hidden {
+		t.Setenv(v, "hidden")
+	}
+	t.Setenv("INDEXER_TEST_KEEP", "kept")
+	c, err := ExecRunner{Path: prog}.Check(context.Background(), "gravel-rally-1.0.0.brr", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]string{}
+	for _, kv := range c.TasteNotes {
+		k, v, _ := strings.Cut(kv, "=")
+		got[strings.ToUpper(k)] = v
+	}
+	for _, v := range hidden {
+		if _, ok := got[v]; ok {
+			t.Errorf("%s reached bururu", v)
+		}
+	}
+	if got["INDEXER_TEST_KEEP"] != "kept" || got["PATH"] == "" {
+		t.Errorf("bururu did not get the rest of the environment: %v", c.TasteNotes)
+	}
+	if err := CheckBururuVersion(context.Background(), prog, "1.0.0"); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"PATH", "HOME", "LD_LIBRARY_PATH", "XDG_DATA_DIRS", "GOPATH", "SSH_AUTH_SOCK", "KEYBOARD", "PATHEXT"} {
+		if secretName(name) {
+			t.Errorf("%s is taken for a secret", name)
+		}
 	}
 }

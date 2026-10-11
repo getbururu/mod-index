@@ -165,6 +165,41 @@ func FetchBururu(ctx context.Context, hc *http.Client, pin BururuPin, dir string
 	return prog, nil
 }
 
+// buildRunsOn is nil when the pinned build runs on goos/goarch. The
+// build is Bururu's Linux release, an x86_64 AppImage.
+func buildRunsOn(goos, goarch string) error {
+	if goos != "linux" || goarch != "amd64" {
+		return fmt.Errorf("the pinned Bururu is a Linux x86_64 build; on %s/%s, poll with -bururu <program> -ref <ref>", goos, goarch)
+	}
+	return nil
+}
+
+// CheckBururuDownload downloads the build pin names into dir, checks its
+// SHA-256 and removes the file again. It neither unpacks nor runs the
+// build: check-pr uses it on a pull request that changes the pin.
+func CheckBururuDownload(ctx context.Context, hc *http.Client, pin BururuPin, dir string, max int64) error {
+	if !pin.Pinned() {
+		return errors.New("no Bururu build is pinned")
+	}
+	if err := checkPin(pin); err != nil {
+		return err
+	}
+	ctx, cancel := context.WithTimeout(ctx, 20*time.Minute)
+	defer cancel()
+	u, _ := url.Parse(pin.URL)
+	file := filepath.Join(dir, path.Base(u.Path))
+	defer os.Remove(file)
+	return download(ctx, hc, pin.URL, pin.SHA256, file, max)
+}
+
+// pinText says what pin names, for a report.
+func pinText(p BururuPin) string {
+	if !p.Pinned() {
+		return "no build pinned"
+	}
+	return fmt.Sprintf("Bururu %s from %s, SHA-256 %s, program %s", p.Version, p.URL, p.SHA256, p.Path)
+}
+
 // CheckBururuVersion runs `<prog> -version` and wants it to print
 // "Bururu <version>": the build runs here, and it is the version its pin
 // names.
@@ -172,6 +207,7 @@ func CheckBururuVersion(ctx context.Context, prog, version string) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, prog, "-version")
+	cmd.Env = childEnv()
 	var out bytes.Buffer
 	cmd.Stdout = &limited{w: &out, n: 4 << 10}
 	cmd.Stderr = cmd.Stdout
@@ -253,6 +289,7 @@ func unpackAppImage(ctx context.Context, file, inner, dir string) (string, error
 	}
 	cmd := exec.CommandContext(ctx, file, "--appimage-extract")
 	cmd.Dir = dir
+	cmd.Env = childEnv()
 	var errOut bytes.Buffer
 	cmd.Stderr = &limited{w: &errOut, n: 64 << 10}
 	if err := cmd.Run(); err != nil {

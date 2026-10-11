@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -101,6 +103,7 @@ func (r ExecRunner) run(ctx context.Context, v any, args ...string) error {
 	ctx, cancel := context.WithTimeout(ctx, t)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, r.Path, args...)
+	cmd.Env = childEnv()
 	var out, errOut bytes.Buffer
 	cmd.Stdout = &limited{w: &out, n: 16 << 20}
 	cmd.Stderr = &limited{w: &errOut, n: 64 << 10}
@@ -145,6 +148,34 @@ func (r ExecRunner) Listing(ctx context.Context, pack, iconOut, textOut string) 
 		return nil, fmt.Errorf("bururu mod listing: format %d; this indexer reads %d", l.Listing, ListingJSONFormat)
 	}
 	return &l, nil
+}
+
+// childEnv is this process's environment without the variables that
+// may hold a secret. Bururu gets it: its mod check runs the Lua of packs
+// nobody has reviewed yet, and the indexer's own GitHub client has read
+// GITHUB_TOKEN already.
+func childEnv() []string {
+	var env []string
+	for _, kv := range os.Environ() {
+		name, _, _ := strings.Cut(kv, "=")
+		if !secretName(name) {
+			env = append(env, kv)
+		}
+	}
+	return env
+}
+
+// secretName reports whether an environment variable of that name may
+// hold a secret: GITHUB_TOKEN, GH_TOKEN, AWS_SECRET_ACCESS_KEY,
+// SMTP_PASSWORD, OPENAI_API_KEY, GITHUB_PAT and the like.
+func secretName(name string) bool {
+	n := strings.ToUpper(name)
+	for _, w := range []string{"TOKEN", "SECRET", "PASSWORD", "PASSWD", "CREDENTIAL"} {
+		if strings.Contains(n, w) {
+			return true
+		}
+	}
+	return strings.HasSuffix(n, "_KEY") || strings.HasSuffix(n, "_PAT")
 }
 
 // limited keeps at most n bytes of what is written to it.

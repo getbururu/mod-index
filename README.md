@@ -38,7 +38,7 @@ only when you click Install.
 
 | Workflow | When | What |
 |---|---|---|
-| `check-entry` | every pull request | reads every data file, runs the tests, and looks at the repo and newest release of each new or changed entry |
+| `check-entry` | every pull request | reads every data file, runs the tests, looks at the repo and newest release of each new or changed entry, and checks a change of `tools/bururu.json` |
 | `check-report` | after `check-entry` | posts the report on the pull request |
 | `poll` | every 6 hours, and when an entry or `tools/bururu.json` changes | checks each new release with the pinned Bururu build and opens one pull request per version; a maintainer's merge is the review |
 | `publish` | when `state/`, `games/`, `policy/` or the indexer change | builds `index.json` and puts it on the site |
@@ -83,11 +83,30 @@ Bururu's core (`AppRun` points at it). The core is a static program,
 and its `mod check` and `mod listing` need no display and no GTK. A
 plain tarball of the core would work as well, if Bururu ever ships one.
 
-To pin a Bururu version, write its version, the address of the file in
-that version's own release (not a link to the latest release, whose file
-changes) and the file's SHA-256 from that release's `SHA256SUMS.txt`
-into `tools/bururu.json`, and open a pull request. `check-entry` reads
-the file, and after the merge the poll runs with the new build.
+To pin a Bururu version, fill in all four fields of `tools/bururu.json`
+and open a pull request:
+
+- `version`: the version of that release, such as `1.0.0`;
+- `url`: the address of the file in that version's own release, not a
+  link to the latest release, whose file changes;
+- `sha256`: the file's SHA-256 from that release's `SHA256SUMS.txt`;
+- `path`: `usr/bin/bururu` for the AppImage.
+
+A pin with some fields empty does not read. Only the list's maintainers
+change this file: `check-entry` fails anyone else's change, and its
+report shows the pin before and after. For a maintainer's pull request
+it also downloads the file and checks its SHA-256, so a wrong address or
+hash shows before the merge. It does not unpack or run the build; the
+poll does that after the merge. To try the whole thing first, run the
+poll on the branch on Linux x86_64 (WSL works) without `-bururu`:
+
+```
+go run ./tools/indexer poll -out out -only <id>
+```
+
+It downloads the build, checks its SHA-256, unpacks it, checks that
+`bururu -version` prints the pinned version and polls that one mod. Run
+it somewhere with nothing to lose, as the next section says.
 
 ## Polling by hand
 
@@ -106,8 +125,18 @@ branch name and the title. `apply` writes that change into `state/` and
 `files/`, and the pull request's text into `out\body.md`. Commit
 `state/` and `files/` on a new branch and open a pull request with that
 title and text; merging it is the review, as with the bot's pull
-requests. With `GITHUB_TOKEN` set, for example to what `gh auth token`
-prints, GitHub allows the poll more requests.
+requests.
+
+The poll runs `mod check` on packs nobody has reviewed yet, and that
+runs each pack's Lua. So poll by hand somewhere with nothing to lose: a
+VM, Windows Sandbox, or a WSL distro with a Linux build of Bururu, not
+the desktop you work on. The indexer starts Bururu without the
+environment variables that may hold a secret (`GITHUB_TOKEN`,
+`GH_TOKEN`, `*_SECRET`, `*_PASSWORD` and the like). The poll needs no
+token. If GitHub's limit for requests without one gets in the way, set
+`GITHUB_TOKEN` to a fine-grained token that can only read public repos.
+Do not use what `gh auth token` prints: that token can write to every
+repo you can.
 
 ## Game profiles
 

@@ -50,6 +50,7 @@ func CheckPullRequest(ctx context.Context, p *Poller, base, pr string, author, a
 		line("  every data file reads")
 	}
 	maintainer := slices.Contains(maintainers, assoc)
+	checkPinChange(ctx, p, base, pr, maintainer, line, fail)
 	p.Repo = baseRepo
 	changed := 0
 	for _, id := range sortedKeys(prRepo.Entries) {
@@ -96,6 +97,49 @@ func CheckPullRequest(ctx context.Context, p *Poller, base, pr string, author, a
 		line("Result: fail.")
 	}
 	return &EntryCheck{Pass: pass, Report: cutReport(b.String())}
+}
+
+// checkPinChange reports a change of tools/bururu.json: the Bururu build
+// the poll runs on every pack and whose checks the bot's pull requests
+// carry. Only maintainers change it. For a maintainer's pin it downloads
+// the file and checks its SHA-256, without unpacking or running it, so
+// a wrong address or hash shows here and not in the polls after the
+// merge.
+func checkPinChange(ctx context.Context, p *Poller, base, pr string, maintainer bool, line func(string, ...any), fail func(string, ...any)) {
+	a, _ := os.ReadFile(filepath.Join(base, filepath.FromSlash(BururuPinFile)))
+	c, _ := os.ReadFile(filepath.Join(pr, filepath.FromSlash(BururuPinFile)))
+	if bytes.Equal(a, c) {
+		return
+	}
+	line("")
+	line("Bururu pin (%s):", BururuPinFile)
+	old, err := readPin(base)
+	if err != nil {
+		line("  before: does not read")
+	} else {
+		line("  before: %s", pinText(old))
+	}
+	pin, err := readPin(pr)
+	if err != nil {
+		line("  after: does not read (see Data files)")
+	} else {
+		line("  after: %s", pinText(pin))
+	}
+	switch {
+	case !maintainer:
+		fail("only the list's maintainers change %s", BururuPinFile)
+	case err != nil || !pin.Pinned():
+	default:
+		dir, err := os.MkdirTemp(p.Work, "bururu-")
+		if err == nil {
+			err = CheckBururuDownload(ctx, p.buildClient(), pin, dir, MaxBuildBytes)
+		}
+		if err != nil {
+			fail("the pinned build: %v", err)
+			return
+		}
+		line("  the file at that address has the pinned SHA-256; the poll unpacks and runs it after the merge")
+	}
 }
 
 func samePins(a, b map[string]Pin) bool {

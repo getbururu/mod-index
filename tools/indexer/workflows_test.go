@@ -113,19 +113,63 @@ jobs:
 			t.Errorf("%s: not caught, got %v", want, p)
 		}
 	}
+	// every way of reaching the secrets context
+	for want, to := range map[string]string{
+		`job a names secrets in "${{ toJSON(secrets) }}"`:        "echo $X\n        env:\n          X: ${{ toJSON(secrets) }}",
+		`job a names secrets in "${{ secrets['BURURU_READ'] }}"`: "echo $X\n        env:\n          X: ${{ secrets['BURURU_READ'] }}",
+		`job a names secrets in "${{ SECRETS.X }}"`:              "echo $X\n        env:\n          X: ${{ SECRETS.X }}",
+		`job a names secrets in "secrets"`:                       "echo hi\n    secrets: inherit",
+	} {
+		bad := strings.Replace(good, "echo hi", to, 1)
+		if p := workflowProblems("stats.yml", bad); !slices.ContainsFunc(p, func(s string) bool { return strings.Contains(s, want) }) {
+			t.Errorf("%s: not caught, got %v", want, p)
+		}
+	}
+	bad := strings.Replace(good, "permissions: {}\n", "permissions: {}\nenv:\n  X: ${{ secrets.X }}\n", 1)
+	if p := workflowProblems("stats.yml", bad); !slices.ContainsFunc(p, func(s string) bool { return strings.HasPrefix(s, `names secrets in "${{ secrets.X }}"`) }) {
+		t.Errorf("a workflow-wide secret: not caught, got %v", p)
+	}
 	// the poll's fetch job reads no secret either: it runs a published
 	// Bururu build, so it needs no token for Bururu's repo
-	bad := strings.Replace(strings.Replace(good, "  a:\n", "  fetch:\n", 1), "echo hi",
+	bad = strings.Replace(strings.Replace(good, "  a:\n", "  fetch:\n", 1), "echo hi",
 		"echo $X\n        env:\n          X: ${{ secrets.BURURU_READ }}", 1)
-	if p := workflowProblems("poll.yml", bad); !slices.ContainsFunc(p, func(s string) bool { return strings.Contains(s, "reads the secret BURURU_READ") }) {
+	if p := workflowProblems("poll.yml", bad); !slices.ContainsFunc(p, func(s string) bool { return strings.Contains(s, "secrets.BURURU_READ") }) {
 		t.Errorf("BURURU_READ in poll.yml's fetch job: not caught, got %v", p)
+	}
+	// a job that can write never runs Bururu, also not through the
+	// indexer's poll, which runs the pinned build on its own
+	for _, script := range []string{`"$RUNNER_TEMP/indexer" poll -out "$in"`, "go run ./tools/indexer check-pr -base base -pr pr -out report"} {
+		bad = strings.Replace(strings.Replace(strings.Replace(good, "  a:\n", "  propose:\n", 1), "contents: read", "contents: write", 1),
+			"echo hi", script, 1)
+		if p := workflowProblems("poll.yml", bad); !slices.ContainsFunc(p, func(s string) bool { return strings.Contains(s, "runs the indexer's poll or check-pr") }) {
+			t.Errorf("%s in poll.yml's propose job: not caught, got %v", script, p)
+		}
 	}
 }
 
 var (
-	pinnedRE  = regexp.MustCompile(`^[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@[0-9a-f]{40}$`)
-	secretsRE = regexp.MustCompile(`secrets\.([A-Za-z0-9_]+)`)
+	pinnedRE = regexp.MustCompile(`^[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@[0-9a-f]{40}$`)
+	// the secrets context in any form: secrets.X, secrets['X'],
+	// toJSON(secrets), a job's secrets: inherit; expressions ignore case
+	secretsRE = regexp.MustCompile(`(?i)\bsecrets\b`)
+	// the indexer commands that run Bururu on packs nobody has reviewed:
+	// poll runs the pinned build even without -bururu
+	runsBururuRE = regexp.MustCompile(`indexer["']?\s+(poll|check-pr)\b`)
 )
+
+// secretsIn are the lines of the keys and values under v that name the
+// secrets context.
+func secretsIn(v any) []string {
+	var out []string
+	for _, s := range strings_(v) {
+		for _, l := range strings.Split(s, "\n") {
+			if secretsRE.MatchString(l) {
+				out = append(out, cutText(strings.TrimSpace(l), 100))
+			}
+		}
+	}
+	return out
+}
 
 // workflowProblems are the rules a workflow file breaks.
 func workflowProblems(name, src string) []string {
@@ -177,6 +221,16 @@ func workflowProblems(name, src string) []string {
 		add("follows %v; only check-entry", list(wr["workflows"]))
 	}
 
+	// no secret anywhere, also outside the jobs (a workflow-wide env:)
+	for _, k := range sortedKeys(root) {
+		if k == "jobs" {
+			continue
+		}
+		for _, x := range secretsIn(map[string]any{k: root[k]}) {
+			add("names secrets in %q; no workflow here reads a secret (GITHUB_TOKEN is github.token)", x)
+		}
+	}
+
 	// least permissions: nothing at the top, each job names its own
 	if p, ok := root["permissions"].(map[string]any); !ok || len(p) != 0 {
 		add("does not start with permissions: {}")
@@ -210,10 +264,9 @@ func workflowProblems(name, src string) []string {
 		if m, ok := job["environment"].(map[string]any); ok {
 			env = str(m["name"])
 		}
-		all := strings.Join(strings_(job), "\n")
-		secrets := secretsRE.FindAllStringSubmatch(all, -1)
-		for _, s := range secrets {
-			add("%s reads the secret %s; no workflow here reads a secret (GITHUB_TOKEN is github.token)", where, s[1])
+		secrets := secretsIn(job)
+		for _, x := range secrets {
+			add("%s names secrets in %q; no workflow here reads a secret (GITHUB_TOKEN is github.token)", where, x)
 		}
 		if untrusted && (writes || len(secrets) > 0 || env != "") {
 			add("%s has write permissions on a pull_request workflow, a secret or an environment: pull request content runs here", where)
@@ -287,6 +340,9 @@ func workflowProblems(name, src string) []string {
 			}
 			if name == "poll.yml" && jn == "propose" && strings.Contains(run, "bururu") {
 				add("%s runs Bururu in the writing job", sw)
+			}
+			if writes && runsBururuRE.MatchString(run) {
+				add("%s runs the indexer's poll or check-pr, which run Bururu on packs nobody has reviewed, in a job that can write", sw)
 			}
 		}
 	}

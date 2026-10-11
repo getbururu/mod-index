@@ -217,13 +217,25 @@ func basicListing(r *fakeRunner, id, version string) *Listing {
 		GameRecords: map[string]GameRecord{}, Problems: []string{}, Reserved: []string{}, Warnings: []string{}}
 }
 
-// testRepo writes a repo with the real policy, games and Bururu pin
-// files and the entries given, and loads it.
+// emptyPin is tools/bururu.json with no build pinned. Test repos get it
+// in place of the real file, so the tests pass whether or not a build
+// is pinned there; TestRepoData reads the real one.
+const emptyPin = `{
+  "bururu": 1,
+  "version": "",
+  "url": "",
+  "sha256": "",
+  "path": ""
+}
+`
+
+// testRepo writes a repo with the real policy and games files, no
+// Bururu build pinned and the entries given.
 func testRepo(t *testing.T, entries ...*Entry) string {
 	t.Helper()
 	root := t.TempDir()
 	for _, f := range []string{"policy/reserved.json", "policy/revoked.json", "policy/advisories.json", "policy/client.json",
-		"games/elite-dangerous.json", BururuPinFile} {
+		"games/elite-dangerous.json"} {
 		b, err := os.ReadFile(filepath.Join("..", "..", filepath.FromSlash(f)))
 		if err != nil {
 			t.Fatal(err)
@@ -231,6 +243,9 @@ func testRepo(t *testing.T, entries ...*Entry) string {
 		if err := writeFile(filepath.Join(root, filepath.FromSlash(f)), b); err != nil {
 			t.Fatal(err)
 		}
+	}
+	if err := writeFile(filepath.Join(root, filepath.FromSlash(BururuPinFile)), []byte(emptyPin)); err != nil {
+		t.Fatal(err)
 	}
 	for _, e := range entries {
 		if err := writeJSON(filepath.Join(root, "entries", e.ID+".json"), e, "  "); err != nil {
@@ -248,6 +263,14 @@ func load(t *testing.T, root string) *Repo {
 		t.Fatalf("the repo has problems:\n%s", strings.Join(probs, "\n"))
 	}
 	return r
+}
+
+// writePin writes pin as root's tools/bururu.json.
+func writePin(t *testing.T, root string, pin BururuPin) {
+	t.Helper()
+	if err := writeJSON(filepath.Join(root, filepath.FromSlash(BururuPinFile)), pin, "  "); err != nil {
+		t.Fatal(err)
+	}
 }
 
 // testPoller is a Poller on the fake GitHub and runner.

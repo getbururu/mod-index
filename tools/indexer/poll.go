@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"net/http"
 	"os"
 	"path/filepath"
 	"slices"
@@ -30,6 +31,17 @@ type Poller struct {
 	Ref  string // the pinned Bururu ref whose checks ran: checks.checked_by
 	Work string // a scratch folder
 	Now  time.Time
+	// BuildHTTP downloads the Bururu build tools/bururu.json pins; nil:
+	// a plain client
+	BuildHTTP *http.Client
+}
+
+// buildClient is the client that downloads the pinned Bururu build.
+func (p *Poller) buildClient() *http.Client {
+	if p.BuildHTTP != nil {
+		return p.BuildHTTP
+	}
+	return &http.Client{}
 }
 
 // Change is one proposed change of the repo: one bot pull request.

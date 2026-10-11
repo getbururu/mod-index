@@ -3,9 +3,12 @@ name: check-entry
 # Every pull request: the indexer's tests, every data file read strictly,
 # and for each entry the pull request adds or changes, its repo and the
 # pack of its newest release. The pack itself is checked by the poll
-# after the merge. Pull request content runs here, so both jobs can only
-# read and see no secret. check-report.yml posts the report and sets the
-# status "indexer".
+# after the merge. A change of tools/bururu.json shows in the report and
+# fails unless a maintainer made it; for a maintainer's change the
+# pinned build is downloaded and its SHA-256 checked, never run. Pull
+# request content runs here, so both jobs can only read and see no
+# secret. check-report.yml posts the report and sets the status
+# "indexer".
 
 on:
   pull_request:
