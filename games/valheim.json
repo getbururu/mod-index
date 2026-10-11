@@ -20,5 +20,6 @@
     "valheim.exe",
     "valheim.x86_64",
     "valheim.app/Contents/MacOS/Valheim"
-  ]
+  ],
+  "controller": {"cable": "dualshock4", "bluetooth": "dualshock4"}
 }

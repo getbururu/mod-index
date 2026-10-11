@@ -122,6 +122,10 @@ func TestRepoData(t *testing.T) {
 		w.Controller == nil || *w.Controller != (GameController{Cable: "direct", Bluetooth: "dualsense", SteamInput: SteamInputOff}) {
 		t.Fatalf("games/the-witcher-3.json: %+v", w)
 	}
+	// Valheim rumbles a DualShock 4 and drives nothing on a DualSense
+	if v := r.Games["valheim"]; v.Controller == nil || *v.Controller != (GameController{Cable: "dualshock4", Bluetooth: "dualshock4"}) {
+		t.Fatalf("games/valheim.json: %+v", v)
+	}
 	e := r.Entries["elite"]
 	if e == nil || !e.Official || e.Repo != "getbururu/bururu-elite" {
 		t.Fatalf("%+v", e)
