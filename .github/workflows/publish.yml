@@ -1,15 +1,19 @@
 name: publish
 
-# Builds index.json from main (state/, games/, policy/) when they or the
-# indexer change, writes it into the pages branch and deploys the site
-# from that branch. Bururu reads it over HTTPS from getbururu.github.io;
-# each version in it pins the SHA-256 of its pack. When the list says the
-# same as the published one, nothing is deployed.
+# Builds v1/index.json and v2/index.json from main (entries/, state/,
+# games/, policy/) when they or the indexer change, and daily at 00:15
+# UTC, so an early-access version reaches v1/ on its free day. Writes
+# them into the pages branch and deploys the site from that branch.
+# Bururu reads v2/ over HTTPS from getbururu.github.io, older builds
+# v1/; each version in them pins the SHA-256 of its pack. When both say
+# the same as the published ones, nothing is deployed.
 
 on:
   push:
     branches: [main]
-    paths: ['state/**', 'games/**', 'policy/**', 'tools/indexer/**']
+    paths: ['entries/**', 'state/**', 'games/**', 'policy/**', 'tools/indexer/**']
+  schedule:
+    - cron: '15 0 * * *'
   workflow_dispatch:
 
 permissions: {}
@@ -58,9 +62,9 @@ jobs:
         id: build
         run: |
           set -euo pipefail
-          mkdir -p site/v1
-          go run ./tools/indexer build -site site/v1 -out "$RUNNER_TEMP/index" | tee -a "$GITHUB_STEP_SUMMARY"
-          if [ -f "$RUNNER_TEMP/index/index.json" ]; then
+          mkdir -p site
+          go run ./tools/indexer build -site site -out "$RUNNER_TEMP/index" | tee -a "$GITHUB_STEP_SUMMARY"
+          if [ -d "$RUNNER_TEMP/index" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
@@ -104,7 +108,7 @@ jobs:
         with:
           name: index
           path: ${{ runner.temp }}/index
-      - name: Write the index into the pages branch
+      - name: Write the indexes into the pages branch
         run: |
           set -euo pipefail
           (cd repo && go build -o "$RUNNER_TEMP/indexer" ./tools/indexer)
@@ -116,7 +120,7 @@ jobs:
             git switch -q --orphan pages
             find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
           fi
-          "$RUNNER_TEMP/indexer" site -in "$RUNNER_TEMP/index" -site v1
+          "$RUNNER_TEMP/indexer" site -in "$RUNNER_TEMP/index" -site .
           git add -A
           if git diff --cached --quiet; then
             echo "nothing new for the site"

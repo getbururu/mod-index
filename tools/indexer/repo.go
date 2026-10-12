@@ -53,7 +53,15 @@ type Entry struct {
 	// Pins: versions whose pack the maintainers built themselves, by
 	// version; a release whose asset differs holds the mod
 	Pins map[string]Pin `json:"pins,omitempty"`
+	// EarlyAccess: an official mod's versions that Bururu Pro members get
+	// first, by version, with the day each one reaches everyone; set by
+	// maintainers only
+	EarlyAccess map[string]Date `json:"early_access,omitempty"`
 }
+
+// MaxEarlyDays is the longest early access: a version reaches everyone
+// at most this many days after its release.
+const MaxEarlyDays = 90
 
 // Pin is the pack a version must have.
 type Pin struct {
@@ -268,6 +276,7 @@ func LoadRepo(root string) (*Repo, []string) {
 	}
 	probs = append(probs, r.checkPolicy()...)
 	probs = append(probs, r.checkFiles()...)
+	probs = append(probs, r.checkEarly()...)
 	for _, id := range sortedKeys(r.States) {
 		if r.Entries[id] == nil && r.States[id].Status != StatusRemoved {
 			add("state/%s.json: no entry for it, and it is not removed", id)
@@ -300,7 +309,116 @@ func checkEntry(e *Entry, id string) []string {
 			p = append(p, fmt.Sprintf("pins.%s: asset %s-%s%s, a SHA-256 in lower-case hex and the size", v, e.ID, v, PackExt))
 		}
 	}
+	if len(e.EarlyAccess) > 0 && !e.Official {
+		p = append(p, "early_access is for official mods only")
+	}
+	for _, v := range sortedKeys(e.EarlyAccess) {
+		if sv, ok := parseSemver(v); !ok || sv.pre != "" || strings.Contains(v, "+") {
+			p = append(p, fmt.Sprintf("early_access: %q is not a version like 1.2.0; a test version has no early access", v))
+		}
+		if _, ok := e.EarlyAccess[v].Time(); !ok {
+			p = append(p, fmt.Sprintf("early_access.%s: %q is not a day (YYYY-MM-DD)", v, e.EarlyAccess[v]))
+		}
+	}
 	return p
+}
+
+// freeDay is the day version v of mod id reaches everyone: the day its
+// entry's early_access names, or its release day.
+func (r *Repo) freeDay(id, v string) Date {
+	if e := r.Entries[id]; e != nil {
+		if d, ok := e.EarlyAccess[v]; ok {
+			return d
+		}
+	}
+	return DateOf(r.States[id].Versions[v].Published)
+}
+
+// earlyDayProblem says what is wrong with free as the free day of a
+// version released at published: it must be 1 to MaxEarlyDays days
+// after the release day. "" nothing.
+func earlyDayProblem(free Date, published time.Time) string {
+	t, ok := free.Time()
+	if !ok {
+		return fmt.Sprintf("%q is not a day", free)
+	}
+	rel := DateOf(published)
+	day, _ := rel.Time()
+	switch {
+	case !t.After(day):
+		return fmt.Sprintf("%s is not after the release on %s", free, rel)
+	case t.After(day.AddDate(0, 0, MaxEarlyDays)):
+		return fmt.Sprintf("%s is more than %d days after the release on %s", free, MaxEarlyDays, rel)
+	}
+	return ""
+}
+
+// earlyDependency says which required dependency of v keeps it from a
+// player without Pro on free, the day v reaches everyone: a listed mod
+// whose versions in the range are all still early access then. "" none.
+func (r *Repo) earlyDependency(v StateVersion, free Date) string {
+	for _, dep := range sortedKeys(v.Dependencies) {
+		d := v.Dependencies[dep]
+		rng, ok := parseRange(d.Version)
+		st := r.States[dep]
+		if d.Kind != DepRequired || !ok || st == nil {
+			continue
+		}
+		early, open := false, false
+		for _, dv := range sortedKeys(st.Versions) {
+			sv, ok := parseSemver(dv)
+			if !ok || !rng.has(sv) {
+				continue
+			}
+			_, marked := r.Entries[dep].earlyAccess()[dv]
+			switch {
+			case r.freeDay(dep, dv) <= free:
+				open = true
+			case marked:
+				early = true
+			}
+		}
+		if early && !open {
+			want := d.Version
+			if want == "" {
+				want = "(any version)"
+			}
+			return fmt.Sprintf("it requires %s %s, and the listed versions of %s in that range are all still early access then", dep, want, dep)
+		}
+	}
+	return ""
+}
+
+// earlyAccess is e's early_access; nil for no entry.
+func (e *Entry) earlyAccess() map[string]Date {
+	if e == nil {
+		return nil
+	}
+	return e.EarlyAccess
+}
+
+// checkEarly checks the early-access days against the accepted
+// versions: each free day fits its version's release, and no version
+// requires a mod version that is still early access on its free day.
+func (r *Repo) checkEarly() []string {
+	var probs []string
+	for _, id := range sortedKeys(r.States) {
+		st := r.States[id]
+		for _, v := range sortedKeys(r.Entries[id].earlyAccess()) {
+			if sv, ok := st.Versions[v]; ok {
+				if why := earlyDayProblem(r.Entries[id].EarlyAccess[v], sv.Published); why != "" {
+					probs = append(probs, fmt.Sprintf("entries/%s.json: early_access.%s: %s", id, v, why))
+				}
+			}
+		}
+		for _, v := range sortedKeys(st.Versions) {
+			free := r.freeDay(id, v)
+			if why := r.earlyDependency(st.Versions[v], free); why != "" {
+				probs = append(probs, fmt.Sprintf("state/%s.json: %s %s reaches everyone on %s, but %s", id, id, v, free, why))
+			}
+		}
+	}
+	return probs
 }
 
 // checkState applies the index's rules to a state file, as the mod it
@@ -319,7 +437,7 @@ func checkState(s *State, id string, official bool) error {
 	if c.err != nil {
 		return c.err
 	}
-	checkMod(c, id, s.mod(official))
+	checkMod(c, id, s.mod(official), IndexFormat)
 	for _, v := range sortedKeys(s.Versions) {
 		sv := s.Versions[v]
 		c.match("versions."+v+".commit", commitRE, sv.Commit)

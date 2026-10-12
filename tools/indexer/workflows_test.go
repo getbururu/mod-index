@@ -125,6 +125,10 @@ jobs:
 			t.Errorf("%s: not caught, got %v", want, p)
 		}
 	}
+	// publish runs daily, so a free day reaches v1/ with no push
+	if p := workflowProblems("publish.yml", good); !slices.ContainsFunc(p, func(s string) bool { return strings.Contains(s, "publish runs on no schedule") }) {
+		t.Errorf("publish.yml without a schedule: not caught, got %v", p)
+	}
 	bad := strings.Replace(good, "permissions: {}\n", "permissions: {}\nenv:\n  X: ${{ secrets.X }}\n", 1)
 	if p := workflowProblems("stats.yml", bad); !slices.ContainsFunc(p, func(s string) bool { return strings.HasPrefix(s, `names secrets in "${{ secrets.X }}"`) }) {
 		t.Errorf("a workflow-wide secret: not caught, got %v", p)
@@ -194,7 +198,7 @@ func workflowProblems(name, src string) []string {
 		"check-entry.yml":  {"pull_request"},
 		"check-report.yml": {"workflow_run"},
 		"poll.yml":         {"schedule", "workflow_dispatch", "push"},
-		"publish.yml":      {"push", "workflow_dispatch"},
+		"publish.yml":      {"push", "schedule", "workflow_dispatch"},
 		"stats.yml":        {"schedule", "workflow_dispatch"},
 	}
 	for _, tr := range triggers {
@@ -206,14 +210,17 @@ func workflowProblems(name, src string) []string {
 			add("runs on %s, which this workflow may not", tr)
 		}
 	}
+	if name == "publish.yml" && !slices.Contains(triggers, "schedule") {
+		add("publish runs on no schedule; it must run daily, so an early-access version reaches v1/ on its free day")
+	}
 	untrusted := slices.Contains(triggers, "pull_request")
 	if push, ok := on["push"].(map[string]any); ok {
 		if b := list(push["branches"]); !slices.Equal(b, []string{"main"}) {
 			add("runs on pushes to %v; only main", b)
 		}
 		if name == "publish.yml" {
-			if p := list(push["paths"]); !slices.Equal(p, []string{"state/**", "games/**", "policy/**", "tools/indexer/**"}) {
-				add("publishes on pushes to %v; only state/**, games/**, policy/**, tools/indexer/**", p)
+			if p := list(push["paths"]); !slices.Equal(p, []string{"entries/**", "state/**", "games/**", "policy/**", "tools/indexer/**"}) {
+				add("publishes on pushes to %v; only entries/**, state/**, games/**, policy/**, tools/indexer/**", p)
 			}
 		}
 	}

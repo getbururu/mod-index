@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"os"
@@ -126,8 +127,18 @@ func TestRepoData(t *testing.T) {
 		t.Fatalf("games/valheim.json: %+v", v)
 	}
 	e := r.Entries["elite"]
-	if e == nil || !e.Official || e.Repo != "getbururu/bururu-elite" {
+	if e == nil || !e.Official || e.Repo != "getbururu/bururu-elite" || len(e.EarlyAccess) != 0 {
 		t.Fatalf("%+v", e)
+	}
+	// its 0.2.0 stays free for everyone on all three systems
+	for _, format := range []int{IndexFormatV1, IndexFormat} {
+		b, err := BuildIndex(r, format, nil, DateOf(time.Now()))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if v, ok := b.Index.Mods["valheim"].Versions["0.2.0"]; !ok || v.FreeFrom != "" || !slices.Equal(v.OS, Systems) {
+			t.Fatalf("format %d: valheim 0.2.0: %+v", format, v)
+		}
 	}
 	// tools/bururu.json reads: empty, or a build the poll can fetch
 	if p := r.Bururu; p.Bururu != BururuPinFormat || checkPin(p) != nil {
@@ -240,6 +251,16 @@ func TestStats(t *testing.T) {
 	if _, err := readStats(b); err != nil {
 		t.Fatal(err)
 	}
+	// the same stats.json beside each list
+	out := t.TempDir()
+	if err := writeStats(out, st); err != nil {
+		t.Fatal(err)
+	}
+	for _, dir := range []string{SiteV1, SiteV2} {
+		if got, err := os.ReadFile(filepath.Join(out, dir, StatsFile)); err != nil || !bytes.Equal(got, b) {
+			t.Fatalf("%s: %v %s", dir, err, got)
+		}
+	}
 }
 
 // TestCheckPullRequest: a new entry passes with its release's report; a
@@ -299,8 +320,8 @@ func TestCheckPullRequest(t *testing.T) {
 // GitHub that serves a real elite-<version>.brr and the real `bururu mod
 // listing` of it, and builds the index. It runs when INDEXER_ELITE is a
 // folder holding one elite-<version>.brr, listing.json and
-// text/<sha>.txt; with INDEXER_ELITE_OUT it also writes the site there
-// for a check with Bururu's own reader.
+// text/<sha>.txt; with INDEXER_ELITE_OUT it also writes the site (v1/
+// and v2/) there for a check with Bururu's own reader.
 func TestEliteEntry(t *testing.T) {
 	dir := os.Getenv("INDEXER_ELITE")
 	if dir == "" {
@@ -355,27 +376,34 @@ func TestEliteEntry(t *testing.T) {
 		t.Fatal(c.Title)
 	}
 	accept(t, root, changes)
-	b, err := BuildIndex(load(t, root), nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := readIndex(b.File); err != nil {
-		t.Fatal(err)
-	}
-	v := b.Index.Mods["elite"].Versions[ver]
-	if v.SHA256 != sha256Hex(pack) || v.Size != int64(len(pack)) || !b.Index.Mods["elite"].Official {
-		t.Fatalf("%+v", v)
+	files := map[string][]byte{}
+	for _, f := range []struct {
+		dir    string
+		format int
+	}{{SiteV1, IndexFormatV1}, {SiteV2, IndexFormat}} {
+		b, err := BuildIndex(load(t, root), f.format, nil, DateOf(t0))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := readIndex(b.File); err != nil {
+			t.Fatal(err)
+		}
+		v := b.Index.Mods["elite"].Versions[ver]
+		if v.SHA256 != sha256Hex(pack) || v.Size != int64(len(pack)) || !b.Index.Mods["elite"].Official {
+			t.Fatalf("%+v", v)
+		}
+		files[f.dir+"/"+IndexFile] = b.File
+		for name, fb := range b.Files {
+			files[f.dir+"/"+name] = fb
+		}
 	}
 	if out := os.Getenv("INDEXER_ELITE_OUT"); out != "" {
-		files := map[string][]byte{IndexFile: b.File}
-		for name, fb := range b.Files {
-			files[name] = fb
-		}
 		st, _, err := CountStats(context.Background(), gh.client(""), load(t, root), t0.Add(time.Hour))
 		if err != nil {
 			t.Fatal(err)
 		}
-		files[StatsFile], _ = encode(st, "")
+		files[SiteV1+"/"+StatsFile], _ = encode(st, "")
+		files[SiteV2+"/"+StatsFile], _ = encode(st, "")
 		if err := os.MkdirAll(out, 0o755); err != nil {
 			t.Fatal(err)
 		}

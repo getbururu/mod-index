@@ -1,8 +1,8 @@
 name: stats
 
 # Daily: GitHub's download counts of the listed packs and the stars of
-# their repos, written into the pages branch as stats.json beside the
-# index, and the whole site deployed from it.
+# their repos, written into the pages branch as stats.json beside each
+# index (v1/ and v2/), and the whole site deployed from it.
 # On a repo that was just made, run it once by hand: publish deploys only
 # when the index changes, so this is what puts the site up again.
 
@@ -88,7 +88,7 @@ jobs:
           cd site
           git fetch -q --depth=1 origin pages
           git switch -q -C pages FETCH_HEAD
-          "$RUNNER_TEMP/indexer" site -in "$RUNNER_TEMP/stats" -site v1
+          "$RUNNER_TEMP/indexer" site -in "$RUNNER_TEMP/stats" -site .
           git add -A
           if git diff --cached --quiet; then
             echo "nothing new for the site"

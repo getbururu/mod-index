@@ -76,6 +76,7 @@ Fork this repo, add `entries/<id>.json`, and open a pull request:
 | `repo` | `<owner>/<name>` of your repo on github.com |
 | `official` | `false`; only the list's maintainers set it |
 | `prerelease` | `true` to list test versions too |
+| `early_access` | leave it out; official mods only, see [Early access](#early-access-official-mods-only) |
 
 The games, authors and permissions come from your manifest, so the entry
 does not repeat them.
@@ -104,6 +105,35 @@ before it updates.
 
 The list never changes a listed version. To take one back, publish a
 newer one, or ask for a revocation in an issue.
+
+## Early access (official mods only)
+
+Bururu Pro members get some new versions of the official mods first.
+The list's maintainers mark such a version in the mod's entry, with the
+day (UTC) it reaches everyone:
+
+```json
+"early_access": {"0.3.0": "2026-11-14"}
+```
+
+- Only an entry with `"official": true` takes it, and only maintainers
+  set it: a pull request from anyone else that adds, changes or removes
+  it fails.
+- A release version only, never a test version.
+- The day is 1 to 90 days after the version's release on GitHub. The
+  entry may name a version before its release; the poll takes the
+  version only when the day fits.
+- Until that day, Bururu offers the version only to Pro members, and
+  `v1/` (the list for older Bururu builds) leaves it out. On that day it
+  reaches everyone.
+- The `.brr` on the GitHub release works for anyone with Install from
+  file all along. The mods stay open source.
+- Something free stays free: a version the list already gave everyone
+  never becomes early access, and once a version is listed, its day can
+  only move earlier. Removing it from `early_access` makes it free at
+  once.
+- A version may not require a version of another mod that is still in
+  early access on the day the first one reaches everyone.
 
 ## Rules
 

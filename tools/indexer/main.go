@@ -30,12 +30,13 @@ const usage = `indexer: Bururu's mod list (getbururu/mod-index)
       read the poll's result strictly and print: key, id, branch, title
   indexer apply -in <dir> -key <key> [-root .] -body <file>
       write one change into the repo and its pull request's body into <file>
-  indexer build [-root .] -site <v1 dir> -out <dir>
-      build index.json from the repo; nothing when the published one says the same
-  indexer site -in <dir> -site <v1 dir>
-      put built files into the site
+  indexer build [-root .] -site <dir> -out <dir> [-now <RFC 3339>]
+      build v1/index.json and v2/index.json from the repo for the day now;
+      nothing for one whose published file says the same
+  indexer site -in <dir> -site <dir>
+      put built files (v1/..., v2/...) into the pages branch's checkout
   indexer stats [-root .] -out <dir> [-now <RFC 3339>]
-      count downloads and stars into stats.json
+      count downloads and stars into v1/stats.json and v2/stats.json
 `
 
 func main() {
@@ -228,42 +229,52 @@ func run(ctx context.Context, cmd string, args []string) error {
 		return fmt.Errorf("no change %q", *key)
 
 	case "build":
-		site := fs.String("site", "", "the v1 folder of the pages branch")
-		out := fs.String("out", "", "where the index goes")
+		site := fs.String("site", "", "the pages branch's checkout")
+		out := fs.String("out", "", "where the indexes go")
+		now := fs.String("now", "", "the time (RFC 3339); default now")
 		if err := parse(); err != nil {
+			return err
+		}
+		t, err := nowFlag(*now)
+		if err != nil {
 			return err
 		}
 		r, probs := LoadRepo(*root)
 		if len(probs) > 0 {
 			return fmt.Errorf("the repo has problems:\n%s", strings.Join(probs, "\n"))
 		}
-		prev, err := ReadSite(*site)
-		if err != nil {
-			return err
-		}
-		b, err := BuildIndex(r, prev)
-		if err != nil {
-			return err
-		}
-		if b.Same {
-			fmt.Printf("%s: serial %d says the same; nothing to publish\n", IndexFile, b.Index.Serial)
-			return nil
-		}
-		files := map[string][]byte{IndexFile: b.File}
-		for name, fb := range b.Files {
-			files[name] = fb
-		}
-		for _, name := range sortedKeys(files) {
-			if err := writeFile(filepath.Join(*out, filepath.FromSlash(name)), files[name]); err != nil {
+		for _, f := range []struct {
+			dir    string
+			format int
+		}{{SiteV1, IndexFormatV1}, {SiteV2, IndexFormat}} {
+			prev, err := ReadSite(filepath.Join(*site, f.dir), f.format)
+			if err != nil {
 				return err
 			}
+			b, err := BuildIndex(r, f.format, prev, DateOf(t))
+			if err != nil {
+				return fmt.Errorf("%s/%s: %w", f.dir, IndexFile, err)
+			}
+			if b.Same {
+				fmt.Printf("%s/%s: serial %d says the same; nothing to publish\n", f.dir, IndexFile, b.Index.Serial)
+				continue
+			}
+			files := map[string][]byte{IndexFile: b.File}
+			for name, fb := range b.Files {
+				files[name] = fb
+			}
+			for _, name := range sortedKeys(files) {
+				if err := writeFile(filepath.Join(*out, f.dir, filepath.FromSlash(name)), files[name]); err != nil {
+					return err
+				}
+			}
+			fmt.Printf("%s/%s: serial %d, %d mods, %d games, %d bytes\n", f.dir, IndexFile, b.Index.Serial, len(b.Index.Mods), len(b.Index.Games), len(b.File))
 		}
-		fmt.Printf("%s: serial %d, %d mods, %d games, %d bytes\n", IndexFile, b.Index.Serial, len(b.Index.Mods), len(b.Index.Games), len(b.File))
 		return nil
 
 	case "site":
 		in := fs.String("in", "", "the built files")
-		site := fs.String("site", "", "the v1 folder of the pages branch")
+		site := fs.String("site", "", "the pages branch's checkout")
 		if err := parse(); err != nil {
 			return err
 		}
@@ -311,7 +322,7 @@ func run(ctx context.Context, cmd string, args []string) error {
 		if err != nil {
 			return err
 		}
-		if err := writeJSON(filepath.Join(*out, StatsFile), st, ""); err != nil {
+		if err := writeStats(*out, st); err != nil {
 			return err
 		}
 		for _, n := range notes {

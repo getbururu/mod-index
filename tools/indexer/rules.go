@@ -153,11 +153,11 @@ func (c *checker) date(where string, d Date) {
 	}
 }
 
-// checkIndex applies Bururu's rules to an index.
+// checkIndex applies Bururu's rules to an index of format 1 or 2.
 func checkIndex(ix *Index) error {
 	c := &checker{}
 	switch {
-	case ix.Index != IndexFormat:
+	case ix.Index != IndexFormat && ix.Index != IndexFormatV1:
 		c.fail("index format %d", ix.Index)
 	case ix.Serial <= 0:
 		c.fail("serial %d", ix.Serial)
@@ -169,7 +169,7 @@ func checkIndex(ix *Index) error {
 		checkGame(c, id, ix.Games[id])
 	}
 	for _, id := range sortedKeys(ix.Mods) {
-		checkMod(c, id, ix.Mods[id])
+		checkMod(c, id, ix.Mods[id], ix.Index)
 	}
 	for i, r := range ix.Revoked {
 		checkRevocation(c, "revoked["+strconv.Itoa(i)+"]", r)
@@ -291,7 +291,7 @@ func relPath(p string) bool {
 	return true
 }
 
-func checkMod(c *checker, id string, m Mod) {
+func checkMod(c *checker, id string, m Mod, format int) {
 	where := "mods." + id
 	c.match(where, modIDRE, id)
 	if !NameOK(m.Name) {
@@ -343,11 +343,11 @@ func checkMod(c *checker, id string, m Mod) {
 	}
 	c.text(where+".note", m.Note, MaxNotesBytes, false)
 	for _, ver := range sortedKeys(m.Versions) {
-		checkVersion(c, id, ver, m.Repo, m.Versions[ver])
+		checkVersion(c, id, ver, m.Repo, m.Versions[ver], format)
 	}
 }
 
-func checkVersion(c *checker, id, ver, repo string, v Version) {
+func checkVersion(c *checker, id, ver, repo string, v Version, format int) {
 	where := "mods." + id + ".versions." + ver
 	if _, ok := parseSemver(ver); !ok {
 		c.fail("%s is not a version", where)
@@ -387,6 +387,12 @@ func checkVersion(c *checker, id, ver, repo string, v Version) {
 	checkPermissions(c, where+".permissions", v.Permissions)
 	c.file(where+".changelog", v.Changelog, MaxTextBytes)
 	c.text(where+".notes", v.Notes, MaxNotesBytes, false)
+	switch {
+	case v.FreeFrom != "" && format == IndexFormatV1:
+		c.fail("%s has free_from, which format 1 does not know", where)
+	case v.FreeFrom != "":
+		c.date(where+".free_from", v.FreeFrom)
+	}
 }
 
 func checkPermissions(c *checker, where string, p Permissions) {

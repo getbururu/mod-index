@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -69,6 +70,24 @@ func CheckPullRequest(ctx context.Context, p *Poller, base, pr string, author, a
 		if (e.Official || len(e.Pins) > 0 || (old != nil && (old.Official || len(old.Pins) > 0))) && !maintainer &&
 			(old == nil || old.Official != e.Official || !samePins(old.Pins, e.Pins)) {
 			fail("only the list's maintainers set official and pins")
+		}
+		if !maps.Equal(old.earlyAccess(), e.EarlyAccess) {
+			line("  early access: %s", earlyText(e.EarlyAccess))
+			if !maintainer {
+				fail("only the list's maintainers set early_access")
+			}
+			// a listed version was published with the base's day
+			for _, v := range sortedKeys(e.EarlyAccess) {
+				st := baseRepo.States[id]
+				was, had := old.earlyAccess()[v]
+				switch {
+				case st == nil || st.Versions[v].SHA256 == "":
+				case !had:
+					fail("%s %s is listed free for everyone: something free stays free, so it cannot become early access", id, v)
+				case e.EarlyAccess[v] > was:
+					fail("%s %s is listed with early access until %s: that day may only move earlier", id, v, was)
+				}
+			}
 		}
 		if old != nil && !strings.EqualFold(old.Repo, e.Repo) && !maintainer {
 			fail("the repo of a listed mod changes only by a maintainer")
@@ -140,6 +159,18 @@ func checkPinChange(ctx context.Context, p *Poller, base, pr string, maintainer 
 		}
 		line("  the file at that address has the pinned SHA-256; the poll unpacks and runs it after the merge")
 	}
+}
+
+// earlyText is an entry's early_access for the report.
+func earlyText(early map[string]Date) string {
+	if len(early) == 0 {
+		return "(none)"
+	}
+	var parts []string
+	for _, v := range sortedKeys(early) {
+		parts = append(parts, v+" until "+string(early[v]))
+	}
+	return strings.Join(parts, ", ")
 }
 
 func samePins(a, b map[string]Pin) bool {

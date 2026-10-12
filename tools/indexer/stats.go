@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"time"
 )
 
@@ -55,4 +56,15 @@ func CountStats(ctx context.Context, gh *GitHub, r *Repo, now time.Time) (*Stats
 		return nil, notes, err
 	}
 	return st, notes, nil
+}
+
+// writeStats writes st under out as stats.json of both lists, v1/ and
+// v2/.
+func writeStats(out string, st *Stats) error {
+	for _, dir := range []string{SiteV1, SiteV2} {
+		if err := writeJSON(filepath.Join(out, dir, StatsFile), st, ""); err != nil {
+			return err
+		}
+	}
+	return nil
 }

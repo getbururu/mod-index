@@ -11,7 +11,8 @@ Each mod lives in its author's own GitHub repo and ships as a release
 asset named `<id>-<version>.brr`. This repo only holds one small file per
 mod that says where the mod lives. A GitHub Action checks each new
 release, a maintainer reviews it, and the list is published at
-`https://getbururu.github.io/mod-index/v1/index.json`.
+`https://getbururu.github.io/mod-index/v2/index.json`, see
+[The published list](#the-published-list).
 
 Bururu downloads that file over HTTPS. For every version it lists the
 SHA-256 of the `.brr`, so Bururu refuses a download that is not the file
@@ -41,13 +42,39 @@ only when you click Install.
 | `check-entry` | every pull request | reads every data file, runs the tests, looks at the repo and newest release of each new or changed entry, and checks a change of `tools/bururu.json` |
 | `check-report` | after `check-entry` | posts the report on the pull request |
 | `poll` | every 6 hours, and when an entry or `tools/bururu.json` changes | checks each new release with the pinned Bururu build and opens one pull request per version; a maintainer's merge is the review |
-| `publish` | when `state/`, `games/`, `policy/` or the indexer change | builds `index.json` and puts it on the site |
-| `stats` | daily | download counts and GitHub stars, as `stats.json` beside the list |
+| `publish` | when `entries/`, `state/`, `games/`, `policy/` or the indexer change, and daily at 00:15 UTC | builds `v2/index.json` and `v1/index.json` and puts them on the site |
+| `stats` | daily | download counts and GitHub stars, as `stats.json` beside each list |
 
 No workflow here uses a secret or reads Bururu's code, which is closed
 source. `poll` downloads a published Bururu build instead, the one
 `tools/bururu.json` pins. Until a build is pinned, the poll says so and
 polls nothing, and maintainers poll by hand.
+
+## The published list
+
+| Address | Format | Read by |
+|---|---|---|
+| `https://getbururu.github.io/mod-index/v2/index.json` | 2 | Bururu |
+| `https://getbururu.github.io/mod-index/v1/index.json` | 1 | Bururu builds from before early access |
+
+Format 2 is format 1 with one more field on a version, `free_from`: the
+day (UTC) an early-access version reaches everyone, see
+[Early access](docs/listing.md#early-access-official-mods-only). A
+version without it is free from its release.
+
+```json
+"0.3.0": {
+  "free_from": "2026-11-14",
+  "url": "https://github.com/getbururu/bururu-valheim/releases/download/v0.3.0/valheim-0.3.0.brr",
+  ...
+}
+```
+
+Bururu reads the list strictly and drops the whole file over a field it
+does not know. So `v1/` stays format 1 for the older builds: it leaves
+out an early-access version until its free day, and a mod with no free
+version yet. The daily run of `publish` adds the version to `v1/` on
+that day. Each folder has its own `stats.json`, `icons/` and `text/`.
 
 ## The Bururu the poll runs
 

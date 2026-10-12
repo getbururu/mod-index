@@ -220,6 +220,13 @@ func (p *Poller) examine(ctx context.Context, e *Entry, st *State, info *RepoInf
 	if pub.IsZero() {
 		return verdict{reject: "the release has no publication time"}
 	}
+	free := DateOf(pub)
+	if d, ok := e.EarlyAccess[ver]; ok {
+		if why := earlyDayProblem(d, pub); why != "" {
+			return verdict{reject: fmt.Sprintf("the entry's early_access day %s; a maintainer sets a day 1 to %d days after the release", why, MaxEarlyDays)}
+		}
+		free = d
+	}
 	cand := &Candidate{Version: ver, Tag: rel.TagName, Listing: l, Check: c, Repo: info, Release: rel, Pack: pack, Official: e.Official,
 		Notes: notes, Publish: map[string][]byte{}}
 	cand.State = StateVersion{URL: ReleaseLink(e.Repo, rel.TagName, pack), Size: a.Size, SHA256: sha, API: l.API, OS: orEmpty(l.OS),
@@ -228,6 +235,9 @@ func (p *Poller) examine(ctx context.Context, e *Entry, st *State, info *RepoInf
 		Notes:  cutText(Strip(l.Notes), MaxNotesBytes),
 		Checks: Checks{Result: CheckPass, Warnings: c.Warnings, Taste: c.Taste, CheckedBy: p.Ref},
 		Review: StateReview{By: ReviewBy}}
+	if why := p.Repo.earlyDependency(cand.State, free); why != "" {
+		return verdict{reject: fmt.Sprintf("free for everyone from %s, but %s", free, why)}
+	}
 	cand.Meta = Meta{Name: l.Name, Summary: StripLine(l.Summary), Authors: orEmpty(l.Authors), Kind: l.Kind, Games: orEmpty(l.Games),
 		For: orEmpty(l.For), Provides: orEmpty(l.Provides), License: StripLine(l.License), Icon: l.Icon, Readme: l.Readme}
 	if len(cand.Meta.Summary) > MaxSummaryLen {

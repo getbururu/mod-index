@@ -9,23 +9,34 @@ import (
 // The published files' formats, as Bururu reads them
 // (internal/modindex/types.go in Bururu's repo). Bururu reads them
 // strictly and refuses a field it does not know, so these types and
-// Bururu's must stay field for field alike.
+// Bururu's must stay field for field alike. Builds that read v1/ do not
+// know free_from, so a v1/ index never carries it.
 
-// Where the list lives. Bururu has the same values.
+// Where the list lives. Bururu has the same values: Home is the list it
+// reads, HomeV1 the one Bururu builds before format 2 read.
 const (
 	ListOwner = "getbururu"
 	ListRepo  = "mod-index"
 	ListURL   = "https://github.com/" + ListOwner + "/" + ListRepo
-	Home      = "https://" + ListOwner + ".github.io/" + ListRepo + "/v1/"
+	Home      = "https://" + ListOwner + ".github.io/" + ListRepo + "/" + SiteV2 + "/"
+	HomeV1    = "https://" + ListOwner + ".github.io/" + ListRepo + "/" + SiteV1 + "/"
 )
 
-// The file formats.
+// The file formats. Format 2 is format 1 with free_from on a version;
+// v1/ keeps format 1 for the Bururu builds that read it.
 const (
-	IndexFormat = 1
-	StatsFormat = 1
+	IndexFormat   = 2
+	IndexFormatV1 = 1
+	StatsFormat   = 1
 )
 
-// The published files, relative to the home (the v1/ folder of the pages
+// The folders of the pages branch, one per index format.
+const (
+	SiteV1 = "v1"
+	SiteV2 = "v2"
+)
+
+// The published files, relative to a home (v1/ or v2/ of the pages
 // branch).
 const (
 	IndexFile = "index.json"
@@ -155,6 +166,9 @@ type Version struct {
 	Permissions  Permissions           `json:"permissions"`
 	Changelog    *FileRef              `json:"changelog"`
 	Notes        string                `json:"notes"`
+	// FreeFrom, format 2 only: the day an early-access version reaches
+	// everyone; "" free from its release
+	FreeFrom Date `json:"free_from,omitempty"`
 }
 
 // Dependency is one dependency of a version.
@@ -325,7 +339,8 @@ type ModStats struct {
 	Versions  map[string]int64 `json:"versions"`
 }
 
-// Date is a day, YYYY-MM-DD, in UTC.
+// Date is a day, YYYY-MM-DD, in UTC. Two days compare in order as
+// strings.
 type Date string
 
 // Time is 00:00 UTC of d; ok is false when d is not a day.

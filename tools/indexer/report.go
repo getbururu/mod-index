@@ -46,6 +46,14 @@ func report(e *Entry, st *State, c *Candidate) string {
 	if e.Official {
 		line("Official:  yes (the entry says so)")
 	}
+	if d, ok := e.EarlyAccess[c.Version]; ok {
+		days := 0
+		if t, ok := d.Time(); ok {
+			rel, _ := DateOf(c.State.Published).Time()
+			days = int(t.Sub(rel).Hours() / 24)
+		}
+		line("Early:     early access for Bururu Pro until %s, %d days after the release; everyone gets it that day", d, days)
+	}
 	line("")
 	line("Name:      %s", c.Meta.Name)
 	line("Authors:   %s", strings.Join(c.Meta.Authors, ", "))
