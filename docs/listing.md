@@ -134,6 +134,11 @@ day (UTC) it reaches everyone:
   once.
 - A version may not require a version of another mod that is still in
   early access on the day the first one reaches everyone.
+- A mod's name, summary, README, icon and games come from its newest
+  accepted version, also while that version is in early access. So
+  `v1/`, and Bururu without Pro, show them beside the older free version.
+  Write the README of an early-access version so that it says which
+  version brings what is new.
 
 ## Rules
 
