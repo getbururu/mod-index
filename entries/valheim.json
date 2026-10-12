@@ -3,5 +3,6 @@
   "id": "valheim",
   "repo": "getbururu/bururu-valheim",
   "official": true,
-  "prerelease": true
+  "prerelease": true,
+  "early_access": {"0.3.0": "2026-11-14"}
 }

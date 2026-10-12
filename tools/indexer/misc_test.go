@@ -130,6 +130,10 @@ func TestRepoData(t *testing.T) {
 	if e == nil || !e.Official || e.Repo != "getbururu/bururu-elite" || len(e.EarlyAccess) != 0 {
 		t.Fatalf("%+v", e)
 	}
+	// Valheim's next feature release is the first early-access version
+	if v := r.Entries["valheim"]; v == nil || len(v.EarlyAccess) != 1 || v.EarlyAccess["0.3.0"] == "" {
+		t.Fatalf("entries/valheim.json: %+v", v)
+	}
 	// its 0.2.0 stays free for everyone on all three systems
 	for _, format := range []int{IndexFormatV1, IndexFormat} {
 		b, err := BuildIndex(r, format, nil, DateOf(time.Now()))
